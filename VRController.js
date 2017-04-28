@@ -208,12 +208,15 @@ THREE.VRController.prototype.update = function(){
 	gamepad = this.gamepad,
 	pose = gamepad.pose;
 
+	// BUTTON EVENTS.
+
+	this.listenForButtonEvents();
 
 	//  Once connected a gamepad will have a not-undefined pose
 	//  but that pose will be null until a user action ocurrs.
 	//  If it’s all null then no point in going any futher here. 
 
-	if( pose === null || ( pose.orientation === null && pose.position === null )) return;
+	if( pose === null || pose === undefined || ( pose.orientation === null && pose.position === null )) return;
 
 
 	//  If we’ve gotten to here then gamepad.pose has a definition
@@ -273,10 +276,6 @@ THREE.VRController.prototype.update = function(){
 	this.matrix.multiplyMatrices( this.standingMatrix, this.matrix );
 	this.matrixWorldNeedsUpdate = true;
 
-
-	//  BUTTON EVENTS.
-
-	this.listenForButtonEvents();
 }
 
 
@@ -520,6 +519,56 @@ THREE.VRController.supported = {
 			'thumbrest'
 		],
 		primary: 'trigger'
+	},
+	'Xbox 360 Controller (XInput STANDARD GAMEPAD)': {
+
+		style: 'xbox',
+		buttons: [
+			'a',
+			'b',
+			'x',
+			'y',
+			'bumper-left',
+			'bumper-right',
+			'trigger-left',
+			'trigger-right',
+			'select',
+			'start',
+			'axis-left',
+			'axis-right',
+			'd-up',
+			'd-down',
+			'd-left',
+			'd-right'
+		],
+		primary: 'a'
+	},
+	'Gear VR Controller': {
+
+		style: 'daydream',
+		buttons: [
+			'touchpad',
+			'trigger'
+		],
+		primary: 'touchpad'
+	},
+	'Gear VR Touchpad': {
+		style: 'gearvr',
+		buttons: [ 'touchpad' ],
+		primary: 'touchpad'
+	},
+	'Oculus Remote': {
+
+		style: 'remote',
+		buttons: [
+			'a',
+			'b',
+			'd-up',
+			'd-down',
+			'd-left',
+			'd-right'
+		],
+		primary: 'a'
 	}
 }
 
