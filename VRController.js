@@ -545,7 +545,7 @@ THREE.VRController.supported = {
 	},
 	'Gear VR Controller': {
 
-		style: 'daydream',
+		style: 'gearvr-controller',
 		buttons: [
 			'touchpad',
 			'trigger'
@@ -553,13 +553,13 @@ THREE.VRController.supported = {
 		primary: 'touchpad'
 	},
 	'Gear VR Touchpad': {
-		style: 'gearvr',
+		style: 'gearvr-touchpad',
 		buttons: [ 'touchpad' ],
 		primary: 'touchpad'
 	},
 	'Oculus Remote': {
 
-		style: 'remote',
+		style: 'oculus-remote',
 		buttons: [
 			'a',
 			'b',
