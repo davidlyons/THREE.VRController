@@ -118,8 +118,8 @@ THREE.VRController = function( gamepad ){
 		var
 		verbosity  = THREE.VRController.verbosity,
 		controller = this,
-		prefix = '> #'+ controller.gamepad.index +' '+ controller.gamepad.id +' ('+ controller.gamepad.hand +') ';
-		
+		prefix = '> #'+ controller.gamepad.index +' '+ controller.gamepad.id +' ';
+		if( controller.gamepad.hand ) prefix += '('+ controller.gamepad.hand +') ';
 		
 		//  Did the handedness change?
 		
