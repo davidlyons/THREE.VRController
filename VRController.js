@@ -533,6 +533,33 @@ THREE.VRController.supported = {
 		],
 		primary: 'trigger'
 	},
+	'Gear VR Controller': {
+
+		style: 'gearvr-controller',
+		buttons: [
+			'touchpad',
+			'trigger'
+		],
+		primary: 'touchpad'
+	},
+	'Gear VR Touchpad': {
+		style: 'gearvr-touchpad',
+		buttons: [ 'touchpad' ],
+		primary: 'touchpad'
+	},
+	'Oculus Remote': {
+
+		style: 'oculus-remote',
+		buttons: [
+			'a',
+			'b',
+			'd-up',
+			'd-down',
+			'd-left',
+			'd-right'
+		],
+		primary: 'a'
+	},
 	'Xbox 360 Controller (XInput STANDARD GAMEPAD)': {
 
 		style: 'xbox',
@@ -556,26 +583,24 @@ THREE.VRController.supported = {
 		],
 		primary: 'a'
 	},
-	'Gear VR Controller': {
+	'xinput': {
 
-		style: 'gearvr-controller',
-		buttons: [
-			'touchpad',
-			'trigger'
-		],
-		primary: 'touchpad'
-	},
-	'Gear VR Touchpad': {
-		style: 'gearvr-touchpad',
-		buttons: [ 'touchpad' ],
-		primary: 'touchpad'
-	},
-	'Oculus Remote': {
+		// xbox controller has a different id in Firefox
 
-		style: 'oculus-remote',
+		style: 'xbox',
 		buttons: [
 			'a',
 			'b',
+			'x',
+			'y',
+			'bumper-left',
+			'bumper-right',
+			'trigger-left',
+			'trigger-right',
+			'select',
+			'start',
+			'axis-left',
+			'axis-right',
 			'd-up',
 			'd-down',
 			'd-left',
