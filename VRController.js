@@ -52,6 +52,7 @@ THREE.VRController = function( gamepad ){
 	buttonNames = [],
 	primaryButtonName,
 	axes     = [ 0, 0 ],
+	axes2     = [ 0, 0 ],
 	buttons  = [],
 	hand     = '';
 
@@ -131,12 +132,24 @@ THREE.VRController = function( gamepad ){
 
 		//  Did any axes (assuming a 2D trackpad) values change?
 
-		if( axes[ 0 ] !== gamepad.axes[ 0 ] || axes[ 1 ] !== gamepad.axes[ 1 ]){
+		if( gamepad.axes[ 0 ] && gamepad.axes[ 1 ] ) {
+			if( axes[ 0 ] !== gamepad.axes[ 0 ] || axes[ 1 ] !== gamepad.axes[ 1 ]){
 
-			axes[ 0 ] = gamepad.axes[ 0 ];
-			axes[ 1 ] = gamepad.axes[ 1 ];
-			if( verbosity >= 0.5 ) console.log( prefix +'axes changed', axes );
-			controller.dispatchEvent({ type: 'axes changed', axes: axes });
+				axes[ 0 ] = gamepad.axes[ 0 ];
+				axes[ 1 ] = gamepad.axes[ 1 ];
+				if( verbosity >= 0.5 ) console.log( prefix +'axes changed', axes );
+				controller.dispatchEvent({ type: 'axes changed', axes: axes });
+			}
+		}
+
+		if( gamepad.axes[ 2 ] && gamepad.axes[ 3 ] ) {
+			if( axes2[ 0 ] !== gamepad.axes[ 2 ] || axes2[ 1 ] !== gamepad.axes[ 3 ]){
+
+				axes2[ 0 ] = gamepad.axes[ 2 ];
+				axes2[ 1 ] = gamepad.axes[ 3 ];
+				if( verbosity >= 0.5 ) console.log( prefix +'axes 2 changed', axes2 );
+				controller.dispatchEvent({ type: 'axes 2 changed', axes: axes2 });
+			}
 		}
 
 
