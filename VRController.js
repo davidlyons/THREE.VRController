@@ -359,13 +359,14 @@ THREE.VRController.onGamepadConnect = function( gamepad ){
 	controller.visible = false;
 	window.dispatchEvent( new CustomEvent( 'vr controller connected', { detail: controller }));
 }
-THREE.VRController.onGamepadDisconnect = function( gamepad, index ){
+THREE.VRController.onGamepadDisconnect = function( gamepad, i ){
 
 
 	//  We need to find the controller that holds the reference to this gamepad.
 
 	var 
 	scope = THREE.VRController,
+	index = i || gamepad.index,
 	controller = scope.controllers[ index ];
 
 
