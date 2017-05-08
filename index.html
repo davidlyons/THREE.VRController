@@ -1,11 +1,42 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<title>THREE.VRController demo</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 		<style>
-			body { margin: 0; overflow: hidden; }
+			* { box-sizing: border-box; }
+			body {
+				margin: 0;
+				overflow: hidden;
+				font-family: Arial, sans-serif;
+			}
+			#controllers {
+				position: absolute;
+				bottom: 20px;
+				left: 20px;
+			}
+			.controller {
+				border: 2px solid #fff;
+				border-radius: 5px;
+				color: #fff;
+				width: 250px;
+				height: 30px;
+				font-size: 15px;
+				font-weight: bold;
+				padding: 5px;
+				opacity: 0.3;
+			}
+			.controller + .controller {
+				margin-top: 10px;
+			}
+			.controller span {
+				font-weight: normal;
+				margin-left: 10px;
+			}
+			.controller.connected {
+				opacity: 1;
+			}
 		</style>
 		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/build/three.js"></script>
 		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/examples/js/controls/VRControls.js"></script>
@@ -15,6 +46,14 @@
 		<script src="VRController.js"></script>
 	</head>
 	<body>
+
+		<div id="controllers">
+			<div class="controller">1<span>Not connected</span></div>
+			<div class="controller">2<span>Not connected</span></div>
+			<div class="controller">3<span>Not connected</span></div>
+			<div class="controller">4<span>Not connected</span></div>
+		</div>
+
 		<script>
 
 
@@ -218,13 +257,21 @@ window.addEventListener( 'vr controller connected', function( event ){
 		guiInputHelper.pressed( false )
 	})
 
+	var dom = document.querySelectorAll('.controller')[ controller.gamepad.index ];
+	var label = dom.querySelector('span');
+	label.innerText = controller.gamepadStyle;
+	dom.classList.add('connected');
 
 	//  Daddy, what happens when we die?
 
 	controller.addEventListener( 'disconnected', function( event ){
 
 		controller.parent.remove( controller )
+
+		label.innerText = 'Not connected';
+		dom.classList.remove('connected');
 	})
+
 })
 
 
