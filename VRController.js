@@ -354,7 +354,7 @@ THREE.VRController.onGamepadDisconnect = function( gamepad, i ){
 
 	var 
 	scope = THREE.VRController,
-	index = i || gamepad.index,
+	index = gamepad ? gamepad.index : i,
 	controller = scope.controllers[ index ];
 
 
