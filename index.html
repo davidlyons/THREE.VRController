@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<title>THREE.VRController demo</title>
@@ -15,27 +15,35 @@
 				position: absolute;
 				bottom: 20px;
 				left: 20px;
+				margin: 0;
+				list-style: none;
+				padding-left: 0;
+				counter-reset: gamepad-list;
 			}
-			.controller {
-				border: 2px solid #fff;
-				border-radius: 5px;
+			#controllers li {
 				color: #fff;
-				width: 250px;
-				height: 30px;
 				font-size: 15px;
+				font-weight: normal;
+				opacity: 0.4;
+				counter-increment: gamepad-list;
 				font-weight: bold;
-				padding: 5px;
-				opacity: 0.3;
+				text-shadow: -1px -1px 0 #000,
+											1px -1px 0 #000,
+											-1px 1px 0 #000,
+											1px 1px 0 #000;
 			}
-			.controller + .controller {
+			#controllers li:before {
+				content: counter(gamepad-list, decimal);
+				padding-right: 10px;
+			}
+			#controllers li + li {
 				margin-top: 10px;
 			}
-			.controller span {
-				font-weight: normal;
-				margin-left: 10px;
-			}
-			.controller.connected {
+			#controllers li.connected {
 				opacity: 1;
+			}
+			#controllers li.active {
+				color: #0a0;
 			}
 		</style>
 		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/build/three.js"></script>
@@ -47,12 +55,12 @@
 	</head>
 	<body>
 
-		<div id="controllers">
-			<div class="controller">1<span>Not connected</span></div>
-			<div class="controller">2<span>Not connected</span></div>
-			<div class="controller">3<span>Not connected</span></div>
-			<div class="controller">4<span>Not connected</span></div>
-		</div>
+		<ol id="controllers">
+			<li>not connected</li>
+			<li>not connected</li>
+			<li>not connected</li>
+			<li>not connected</li>
+		</ol>
 
 		<script>
 
@@ -240,6 +248,9 @@ window.addEventListener( 'vr controller connected', function( event ){
 	var guiInputHelper = dat.GUIVR.addInputObject( controller )
 	scene.add( guiInputHelper )
 
+	var dom = document.querySelectorAll('#controllers li')[ controller.gamepad.index ];
+	dom.innerText = controller.gamepadStyle;
+	dom.classList.add('connected');
 
 	//  Button events. How easy is this?!
 	//  We’ll just use the “primary” button -- whatever that might be ;)
@@ -250,17 +261,14 @@ window.addEventListener( 'vr controller connected', function( event ){
 
 		event.target.userData.mesh.material.color.setHex( meshColorOn )
 		guiInputHelper.pressed( true )
+		dom.classList.add('active');
 	})
 	controller.addEventListener( 'primary press ended', function( event ){
 		
 		event.target.userData.mesh.material.color.setHex( meshColorOff )
 		guiInputHelper.pressed( false )
+		dom.classList.remove('active');
 	})
-
-	var dom = document.querySelectorAll('.controller')[ controller.gamepad.index ];
-	var label = dom.querySelector('span');
-	label.innerText = controller.gamepadStyle;
-	dom.classList.add('connected');
 
 	//  Daddy, what happens when we die?
 
@@ -268,7 +276,7 @@ window.addEventListener( 'vr controller connected', function( event ){
 
 		controller.parent.remove( controller )
 
-		label.innerText = 'Not connected';
+		dom.innerText = 'not connected';
 		dom.classList.remove('connected');
 	})
 
