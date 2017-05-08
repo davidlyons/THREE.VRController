@@ -347,14 +347,15 @@ THREE.VRController.onGamepadConnect = function( gamepad ){
 	controller.visible = false;
 	window.dispatchEvent( new CustomEvent( 'vr controller connected', { detail: controller }));
 }
-THREE.VRController.onGamepadDisconnect = function( gamepad ){
+THREE.VRController.onGamepadDisconnect = function( gamepad, i ){
 
 
 	//  We need to find the controller that holds the reference to this gamepad.
 
 	var 
 	scope = THREE.VRController,
-	controller = scope.controllers[ gamepad.index ];
+	index = i || gamepad.index,
+	controller = scope.controllers[ index ];
 
 
 	//  Now we can broadcast the disconnection event on the controller itself
@@ -362,7 +363,7 @@ THREE.VRController.onGamepadDisconnect = function( gamepad ){
 
 	if( scope.verbosity >= 0.5 ) console.log( 'vr controller disconnected', controller );
 	controller.dispatchEvent({ type: 'disconnected', controller: controller });
-	scope.controllers[ gamepad.index ] = undefined;
+	scope.controllers[ index ] = undefined;
 
 
 	//  I’ve taken the following out of use because perhaps you want to 
@@ -412,7 +413,7 @@ THREE.VRController.update = function(){
 
 		else if( gamepad === null && this.controllers[ i ] !== undefined ){
 
-			THREE.VRController.onGamepadDisconnect( gamepad );
+			THREE.VRController.onGamepadDisconnect( gamepad, i );
 		}
 	}
 }
