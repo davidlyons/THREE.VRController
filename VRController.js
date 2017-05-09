@@ -490,7 +490,7 @@ THREE.VRController.supported = {
 	},
 	'Oculus Touch (Right)': {
 
-		style: 'rift',
+		style: 'oculus-touch-right',
 		buttons: [
 
 
@@ -533,7 +533,7 @@ THREE.VRController.supported = {
 	},
 	'Oculus Touch (Left)': {
 
-		style: 'rift',
+		style: 'oculus-touch-left',
 		buttons: [
 
 			'thumbstick',
