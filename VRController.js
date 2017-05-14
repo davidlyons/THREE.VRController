@@ -51,8 +51,7 @@ THREE.VRController = function( gamepad ){
 	style,
 	buttonNames = [],
 	primaryButtonName,
-	axes     = [ 0, 0 ],
-	axes2     = [ 0, 0 ],
+	axes     = [],
 	buttons  = [],
 	hand     = '';
 
@@ -93,10 +92,16 @@ THREE.VRController = function( gamepad ){
 	//  We’ll also add style and DOF here but not onto the actual gamepad
 	//  object because that’s the browser’s territory.
 
-	this.gamepad      = gamepad;
-	this.gamepadStyle = style;
-	this.gamepadDOF   = null;//  Have to wait until gamepad.pose is defined to handle this. 
-	this.name         = gamepad.id;
+	this.gamepad       = gamepad;
+	this.gamepadStyle  = style;
+	this.gamepadDOF    = null;//  Have to wait until gamepad.pose is defined to handle this.
+	this.name          = gamepad.id;
+
+	this.hasThumbstick = style.indexOf('oculus-touch') !== -1 || style == 'xbox';
+	this.axisThreshold = 0.2;
+	this.filterAxis = function( v ) {
+		return ( Math.abs( v ) > this.axisThreshold ) ? v : 0;
+	}
 
 
 	//  Setup axes and button states so we can watch for change events.
@@ -113,6 +118,33 @@ THREE.VRController = function( gamepad ){
 			isPressed: button.pressed
 		}
 	})
+	for( var i = 0; i < gamepad.axes.length / 2; i++ ) {
+		var i0 = i*2, i1 = i*2+1;
+
+		var axisX = gamepad.axes[ i0 ];
+		var axisY = gamepad.axes[ i1 ];
+
+		// only apply filter if both axes are below threshold
+		var filteredX = this.filterAxis( axisX );
+		var filteredY = this.filterAxis( axisY );
+		if ( !filteredX && !filteredY ) {
+			axisX = filteredX;
+			axisY = filteredY;
+		}
+
+		axes[ i ] = {
+			value: [ axisX, axisY ]
+		}
+
+		if( this.hasThumbstick ) {
+			axes[ i ].dpad = {
+				'up':    { index: i1, isPressed: false },
+				'down':  { index: i1, isPressed: false },
+				'left':  { index: i0, isPressed: false },
+				'right': { index: i0, isPressed: false }
+			}
+		}
+	}
 	this.listenForButtonEvents = function(){
 
 		var
@@ -132,26 +164,53 @@ THREE.VRController = function( gamepad ){
 
 		//  Did any axes (assuming a 2D trackpad) values change?
 
-		if( gamepad.axes[ 0 ] && gamepad.axes[ 1 ] ) {
-			if( axes[ 0 ] !== gamepad.axes[ 0 ] || axes[ 1 ] !== gamepad.axes[ 1 ]){
+		for( var i = 0; i < axes.length; i++ ) {
+			var i0 = i*2, i1 = i*2+1;
+			if( gamepad.axes[ i0 ] && gamepad.axes[ i1 ] ) {
 
-				axes[ 0 ] = gamepad.axes[ 0 ];
-				axes[ 1 ] = gamepad.axes[ 1 ];
-				if( verbosity >= 0.5 ) console.log( prefix +'axes changed', axes );
-				controller.dispatchEvent({ type: 'axes changed', axes: axes });
+				var axesVal = axes[ i ].value;
+				var axisX = gamepad.axes[ i0 ];
+				var axisY = gamepad.axes[ i1 ];
+
+				// only apply filter if both axes are below threshold
+				var filteredX = this.filterAxis( axisX );
+				var filteredY = this.filterAxis( axisY );
+				if ( !filteredX && !filteredY ) {
+					axisX = filteredX;
+					axisY = filteredY;
+				}
+
+				if( axesVal[ 0 ] !== axisX || axesVal[ 1 ] !== axisY ){
+					axesVal[ 0 ] = axisX;
+					axesVal[ 1 ] = axisY;
+					if( verbosity >= 0.5 ) console.log( prefix +'axes ' + i + ' changed', axesVal );
+					controller.dispatchEvent({ type: 'axes ' + i + ' changed', axes: axesVal });
+				}
+
+				// emulate d-pad with axes
+				if ( this.hasThumbstick ) {
+					var axisDPad = axes[ i ].dpad;
+					for ( d in axisDPad ) {
+						var axis = axisDPad[d];
+						var v = gamepad.axes[ axis.index ];
+
+						if (d == 'right' || d == 'down') {
+							var axisPressed = v > this.axisThreshold ? v : 0;
+						} else if (d == 'left' || d == 'up') {
+							var axisPressed = v < -this.axisThreshold ? v : 0;
+						}
+
+						if ( axis.isPressed !== !!axisPressed ) {
+							axis.isPressed = !!axisPressed;
+							var suffix = ' ' + ( axis.isPressed ? 'began' : 'ended' );
+							if( verbosity >= 0.5 ) console.log( prefix +'axes ' + i + ' ' + d + ' press'+ suffix );
+							this.dispatchEvent({ type: 'axes ' + i + ' ' + d + ' press'+ suffix });
+						}
+					}
+				}
+
 			}
 		}
-
-		if( gamepad.axes[ 2 ] && gamepad.axes[ 3 ] ) {
-			if( axes2[ 0 ] !== gamepad.axes[ 2 ] || axes2[ 1 ] !== gamepad.axes[ 3 ]){
-
-				axes2[ 0 ] = gamepad.axes[ 2 ];
-				axes2[ 1 ] = gamepad.axes[ 3 ];
-				if( verbosity >= 0.5 ) console.log( prefix +'axes 2 changed', axes2 );
-				controller.dispatchEvent({ type: 'axes 2 changed', axes: axes2 });
-			}
-		}
-
 
 		//  Did any button states change?
 
