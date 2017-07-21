@@ -687,32 +687,7 @@ THREE.VRController.supported = {
 		],
 		primary: 'a'
 	},
-	'Xbox 360 Controller (XInput STANDARD GAMEPAD)': {
-
-		style: 'xbox',
-		buttons: [
-			'a',
-			'b',
-			'x',
-			'y',
-			'bumper-left',
-			'bumper-right',
-			'trigger-left',
-			'trigger-right',
-			'select',
-			'start',
-			'axis-left',
-			'axis-right',
-			'd-up',
-			'd-down',
-			'd-left',
-			'd-right'
-		],
-		primary: 'a'
-	},
-	'xinput': {
-
-		// xbox controller has a different id in Firefox
+	'xbox': {
 
 		style: 'xbox',
 		buttons: [
@@ -737,7 +712,24 @@ THREE.VRController.supported = {
 	}
 }
 
+THREE.VRController.addSupportedControllers = function() {
 
+	var xids = [
+		'Xbox 360 Controller (XInput STANDARD GAMEPAD)',
+		'Xbox One Wired Controller (STANDARD GAMEPAD Vendor: 045e Product: 02dd)',
+		'xinput'
+	]
+
+	for (var i = 0; i < xids.length; i++) {
+
+		var id = xids[i];
+		THREE.VRController.supported[id] = THREE.VRController.supported.xbox;
+
+	}
+
+}
+
+THREE.VRController.addSupportedControllers()
 
 
     ///////////////////
