@@ -96,7 +96,7 @@ THREE.VRController = function( gamepad ) {
 	this.gamepadDOF    = null; // Have to wait until gamepad.pose is defined to handle this.
 	this.name          = gamepad.id;
 
-	this.hasThumbstick = style.indexOf(THREE.VRController.CONTROLLERS_WITH_THUMBSTICKS) >= 0;
+	this.hasThumbstick = THREE.VRController.CONTROLLERS_WITH_THUMBSTICKS.test(style);
 	this.axisThreshold = 0.2;
 	this.axisPressThreshold = 0.6;
 	this.filterAxis = function( v ) {
@@ -505,7 +505,7 @@ THREE.VRController.update = function() {
 	//  and 'ongamepaddisconnected' events firing multiple times.
 	//  Also... those connection events are not widely supported yet anyhow.
 
-	gamepads = navigator.getGamepads()
+	gamepads = navigator.getGamepads();
 	for ( i = 0; i < gamepads.length; i ++ ) {
 
 		gamepad = gamepads[ i ];
