@@ -55,12 +55,7 @@
 	</head>
 	<body>
 
-		<ol id="controllers">
-			<li>not connected</li>
-			<li>not connected</li>
-			<li>not connected</li>
-			<li>not connected</li>
-		</ol>
+		<ol id="controllers"></ol>
 
 		<script>
 
@@ -141,8 +136,8 @@ var torus = new THREE.Mesh(
 torus.position.set( -0.25, 1.4, -1.5 )
 scene.add( torus )
 
-var floor = new THREE.Mesh( 
-	
+var floor = new THREE.Mesh(
+
 	new THREE.BoxGeometry( 6, 0.2, 6, 6, 1, 6 ),
 	new THREE.MeshStandardMaterial({
 
@@ -189,7 +184,7 @@ gui.add( torus.rotation, 'y', -Math.PI, Math.PI ).step( 0.001 ).name( 'Rotation'
 //  instance and from there you do what you want with it.
 
 window.addEventListener( 'vr controller connected', function( event ){
-	
+
 
 	//  Here it is, your VR controller instance.
 	//  It’s really a THREE.Object3D so you can just add it to your scene:
@@ -208,12 +203,12 @@ window.addEventListener( 'vr controller connected', function( event ){
 
 	//  And for 3DOF (seated) controllers you need to set the controller.head
 	//  to reference your camera. That way we can make an educated guess where
-	//  your hand ought to appear based on the camera’s rotation. 
-	
+	//  your hand ought to appear based on the camera’s rotation.
+
 	controller.head = window.camera
 
 
-	//  Right now your controller has no visual. 
+	//  Right now your controller has no visual.
 	//  It’s just an empty THREE.Object3D.
 	//  Let’s fix that!
 
@@ -222,7 +217,7 @@ window.addEventListener( 'vr controller connected', function( event ){
 	meshColorOn  = 0xFFFF00,
 	controllerMaterial = new THREE.MeshStandardMaterial({
 
-		color: meshColorOff, 
+		color: meshColorOff,
 		shading: THREE.FlatShading
 	}),
 	controllerMesh = new THREE.Mesh(
@@ -244,11 +239,16 @@ window.addEventListener( 'vr controller connected', function( event ){
 
 
 	//  Allow this controller to interact with DAT GUI.
-	
+
 	var guiInputHelper = dat.GUIVR.addInputObject( controller )
 	scene.add( guiInputHelper )
 
-	var dom = document.querySelectorAll('#controllers li')[ controller.gamepad.index ];
+	var dom = document.querySelector('#gamepad-' + controller.gamepad.index);
+	if (!dom) {
+		dom = document.createElement('li');
+		dom.id = 'gamepad-' + controller.gamepad.index;
+		document.querySelector('ol').appendChild(dom);
+	}
 	dom.innerText = controller.gamepadStyle;
 	dom.classList.add('connected');
 
@@ -264,7 +264,7 @@ window.addEventListener( 'vr controller connected', function( event ){
 		dom.classList.add('active');
 	})
 	controller.addEventListener( 'primary press ended', function( event ){
-		
+
 		event.target.userData.mesh.material.color.setHex( meshColorOff )
 		guiInputHelper.pressed( false )
 		dom.classList.remove('active');
@@ -297,7 +297,7 @@ function update(){
 
 	//  And here’s your standard update and render stuff.
 	//  Nothing new to see here.
-	
+
 	effect.requestAnimationFrame( update )
 	torus.rotation.y += 0.002
 	if( torus.rotation.y > Math.PI ) torus.rotation.y -= ( Math.PI * 2 )//  Keep DAT GUI display tidy!
