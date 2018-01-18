@@ -1,5 +1,6 @@
 /**
  * @author Stewart Smith / http://stewartsmith.io
+ * @author Moar Technologies Corp / https://moar.io
  * @author Jeff Nusz / http://custom-logic.com
  * @author Data Arts Team / https://github.com/dataarts
  */
@@ -16,20 +17,30 @@
 
 
 	Why is this useful?
-	1. This creates a THREE.Object3D() per gamepad and passes it to you
-	through an event for inclusion in your scene. It then handles copying the
-	live positions and orientations from the gamepad to this Object3D.
-	2. It also broadcasts button events to you on the Object3D instance.
-	For supported devices button names are mapped to the buttons array when
-	possible for convenience. (And this support is easy to extend.)
+	
+	1. This creates a THREE.Object3D() per connected Gamepad instance and 
+	   passes it to you through a Window event for inclusion in your scene. 
+	   It then handles copying the live positions and orientations from the
+	   Gamepad instance to this Object3D.
+	2. It also broadcasts Gamepad button and axes events to you on this
+	   Object3D instance. For your convenience button names are mapped to
+	   objects in the buttons array on supported devices. (And this support 
+	   is easy to extend.) For implicitly supported devices you can continue
+	   to use the buttons array indexes.
+	3. This one JS file explicitly supports several existing VR controllers,
+	   and implicitly supports any controllers that operate similarly!
 
+	
 	What do I have to do?
+	
 	1. Include THREE.VRController.update() in your animation loop and listen
-	for the appropriate events.
+	   for controller connection events like so:
+	   window.addEventlistener('vr controller connected', (controller)=>{}).
 	2. When you receive a controller instance -- again, just an Object3D --
-	you ought to set its standingMatrix property to equal your
-	controls.getStandingMatrix() and if you are expecting 3DOF controllers set
-	its head property equal to your camera.
+	   you ought to set its standingMatrix property equal to your
+	   renderer.vr.getStandingMatrix(). If you are expecting a 3DOF controller
+	   you must set its head property equal to your camera.
+	3. Experiment and HAVE FUN!
 
 
 */
@@ -60,12 +71,15 @@ THREE.VRController = function( gamepad ) {
 	this.matrixAutoUpdate = false;
 
 
-	//  These are special properties you ought to overwrite on the instance
-	//  in your own code. For example:
-	//    controller.standingMatrix = controls.getStandingMatrix()//  Necessary for 6DOF controllers.
-	//    controller.head = camera//  Necessary for 3DOF controllers.
-	//  Quick FYI: “DOF” means “Degrees of Freedom”. If you can rotate about 3 axes
-	//  and also move along 3 axes then 3 + 3 = 6 degrees of freedom.
+	//  ATTENTION !
+	//
+	//  You ought to overwrite these TWO special properties on the instance in
+	//  your own code. For example for 6DOF controllers:
+	//    controller.standingMatrix = renderer.vr.getStandingMatrix()
+	//  And for 3DOF controllers:
+	//    controller.head = camera
+	//  Quick FYI: “DOF” means “Degrees of Freedom”. If you can rotate about 
+	//  3 axes and also move along 3 axes then 3 + 3 = 6 degrees of freedom.
 
 	this.standingMatrix = new THREE.Matrix4();
 	this.head = {
@@ -84,12 +98,10 @@ THREE.VRController = function( gamepad ) {
 	}
 
 
-	//  It is crucial that we have a reference to the actual gamepad!
+	//  It is crucial that we have a reference to the actual gamepad.
 	//  In addition to requiring its .pose for position and orientation
 	//  updates, it also gives us all the goodies like .id, .index,
 	//  and maybe best of all... haptics!
-	//  We’ll also add style and DOF here but not onto the actual gamepad
-	//  object because that’s the browser’s territory.
 
 	this.gamepad       = gamepad;
 	this.gamepadStyle  = style;
@@ -396,7 +408,7 @@ THREE.VRController.prototype.update = function(){
 
 //  This makes inspecting through the console a little bit saner.
 
-THREE.VRController.verbosity = 0;//0.5
+THREE.VRController.verbosity = 1;//0.5
 THREE.VRController.CONTROLLERS_WITH_THUMBSTICKS = new RegExp('(microsoft|oculus\-touch|xbox)', 'i');
 
 
@@ -685,6 +697,95 @@ THREE.VRController.supported = {
 		],
 		primary: 'trigger'
 	},
+	'Spatial Controller (Spatial Interaction Source)': {
+		style: 'microsoft',
+		axes: [
+
+
+			//  THUMBSTICK
+			//  The thumbstick is super twitchy, seems to fire quite a bit on
+			//  its own. Its Y-axis is “Regular”.
+			//
+			//              Top: Y = -1
+			//                   ↑
+			//    Left: X = -1 ←─┼─→ Right: X = +1
+			//                   ↓
+			//           Bottom: Y = +1
+
+			{ name: 'thumbstick', indexes: [ 0, 1 ]},
+
+
+			//  THUMBPAD
+			//  Operates exactly the same as the thumbstick but without the
+			//  extra twitchiness.
+
+			{ name: 'thumbpad',   indexes: [ 2, 3 ]}
+		],
+		buttons: [
+
+
+			//  THUMBSTICK
+			//  --------------------------------------------------------------
+			//  value:     Binary 0 or 1, duplicates isPressed.
+			//  isTouched: Duplicates isPressed.
+			//  isPressed: As expected.
+
+			'thumbstick',
+
+
+			//  TRIGGER
+			//  Its physical range of motion noticably exceeds the range of
+			//  values reported. For example when engaging you can continue
+			//  to squueze beyond when the value reports 1. And when 
+			//  releasing you will reach value === 0 before the trigger is 
+			//  completely released. The value property dictates touch and
+			//  press states as follows:
+			//
+			//  Upon engaging
+			//  if( value >= 0.00 && value < 0.10 ) NO VALUES REPORTED AT ALL!
+			//  if( value >= 0.10 ) isTouched = true
+			//  if( value >= 0.12 ) isPressed = true
+			//
+			//  Upon releasing
+			//  if( value <  0.12 ) isPressed = false
+			//  if( value == 0.00 ) isTouched = false
+			//  --------------------------------------------------------------
+			//  value:     Analog 0 to 1.
+			//  isTouched: Simulated, corresponds to value.
+			//  isPressed: Corresponds to value.
+
+			'trigger',
+
+
+			//  GRIP
+			//  --------------------------------------------------------------
+			//  value:     Binary 0 or 1, duplicates isPressed.
+			//  isTouched: Duplicates isPressed.
+			//  isPressed: As expected.
+
+			'grip',
+
+
+			//  MENU
+			//  --------------------------------------------------------------
+			//  value:     Binary 0 or 1, duplicates isPressed.
+			//  isTouched: Duplicates isPressed.
+			//  isPressed: As expected.
+
+			'menu',
+
+
+			//  THUMBPAD
+			//  This is the only button that has actual touch detection.
+			//  --------------------------------------------------------------
+			//  value:     Binary 0 or 1, duplicates isPressed.
+			//  isTouched: YES has real touch detection.
+			//  isPressed: As expected.
+
+			'thumbpad'
+		],
+		primary: 'trigger'
+	},
 	'Gear VR Controller': {
 
 		style: 'gearvr-controller',
@@ -736,95 +837,6 @@ THREE.VRController.supported = {
 		primary: 'a'
 	},
 
-	'Spatial Controller (Spatial Interaction Source)': {
-		style: 'microsoft',
-				axes: [
-
-					//  THUMBSTICK
-					//  The thumbstick is super twitchy, seems to fire quite a bit on
-					//  its own. Its Y-axis is “Regular”.
-					//
-					//              Top: Y = -1
-					//                   ↑
-					//    Left: X = -1 ←─┼─→ Right: X = +1
-					//                   ↓
-					//           Bottom: Y = +1
-
-					{ name: 'thumbstick', indexes: [ 0, 1 ]},
-
-
-					//  THUMBPAD
-					//  Operates exactly the same as the thumbstick but without the
-					//  extra twitchiness.
-
-					{ name: 'thumbpad',   indexes: [ 2, 3 ]}
-				],
-				buttons: [
-
-
-					//  THUMBSTICK
-					//  --------------------------------------------------------------
-					//  value:     Binary 0 or 1, duplicates isPressed.
-					//  isTouched: Duplicates isPressed.
-					//  isPressed: As expected.
-
-					'thumbstick',
-
-
-					//  TRIGGER
-					//  Its physical range of motion noticably exceeds the range of
-					//  values reported. For example when engaging you can continue
-					//  to squueze beyond when the value reports 1. And when
-					//  releasing you will reach value === 0 before the trigger is
-					//  completely released. The value property dictates touch and
-					//  press states as follows:
-					//
-					//  Upon engaging
-					//  if( value >= 0.00 && value < 0.10 ) NO VALUES REPORTED AT ALL!
-					//  if( value >= 0.10 ) isTouched = true
-					//  if( value >= 0.12 ) isPressed = true
-					//
-					//  Upon releasing
-					//  if( value <  0.12 ) isPressed = false
-					//  if( value == 0.00 ) isTouched = false
-					//  --------------------------------------------------------------
-					//  value:     Analog 0 to 1.
-					//  isTouched: Simulated, corresponds to value.
-					//  isPressed: Corresponds to value.
-
-					'trigger',
-
-
-					//  GRIP
-					//  --------------------------------------------------------------
-					//  value:     Binary 0 or 1, duplicates isPressed.
-					//  isTouched: Duplicates isPressed.
-					//  isPressed: As expected.
-
-					'grip',
-
-
-					//  MENU
-					//  --------------------------------------------------------------
-					//  value:     Binary 0 or 1, duplicates isPressed.
-					//  isTouched: Duplicates isPressed.
-					//  isPressed: As expected.
-
-					'menu',
-
-
-					//  THUMBPAD
-					//  This is the only button that has actual touch detection.
-					//  --------------------------------------------------------------
-					//  value:     Binary 0 or 1, duplicates isPressed.
-					//  isTouched: YES has real touch detection.
-					//  isPressed: As expected.
-
-					'thumbpad'
-				],
-				primary: 'trigger'
-			}
-
 };
 
 THREE.VRController.addSupportedControllers = function() {
@@ -850,6 +862,13 @@ THREE.VRController.supportedKeys = [];
 for ( var key in THREE.VRController.supported ) {
 	THREE.VRController.supportedKeys.push( key );
 }
+
+
+
+
+
+
+
 
     ///////////////////
    //               //

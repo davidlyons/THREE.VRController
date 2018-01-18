@@ -9,7 +9,14 @@
 			body {
 				margin: 0;
 				overflow: hidden;
-				font-family: Arial, sans-serif;
+				font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+				font-size:   13px;
+				line-height: 20px;
+			}
+			button {
+				border-radius: 4px;
+				background-color: #F40 !important;
+				padding: 12px !important;
 			}
 			#controllers {
 				position: absolute;
@@ -46,10 +53,10 @@
 				color: #0a0;
 			}
 		</style>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/build/three.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/examples/js/controls/VRControls.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/examples/js/effects/VREffect.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r85/examples/js/vr/WebVR.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/build/three.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/VRControls.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/effects/VREffect.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r87/examples/js/vr/WebVR.js"></script>
 		<script src="https://cdn.rawgit.com/dataarts/dat.guiVR/master/build/datguivr.js"></script>
 		<script src="VRController.js"></script>
 	</head>
@@ -78,29 +85,24 @@
 if( WEBVR.isAvailable() === false ) document.body.appendChild( WEBVR.getMessage() )
 
 
-//  Regardless, let’s kick off the Three.js basics here:
 
-var camera, scene, renderer, effect, controls
-
-
-//  We need a renderer, and our VREffect ... effect.
-
-renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.setClearColor( 0x101010 )
+var renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setClearColor( 0xCCCCCC )
 renderer.setPixelRatio( window.devicePixelRatio )
 renderer.setSize( window.innerWidth, window.innerHeight )
 document.body.appendChild( renderer.domElement )
-effect = new THREE.VREffect( renderer )
+var effect = new THREE.VREffect( renderer )
 
 
-//  Camera, VRControls to move the camera as your headset moves,
-// (NOTE that VRControls and VRController are NOT related!!),
-//  and a Scene to render it to.
 
-camera   = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 10 )
-controls = new THREE.VRControls( camera )
-controls.standing = true
-scene  = new THREE.Scene()
+var scene = new THREE.Scene()
+var camera   = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 10 )
+var vrcontrols = new THREE.VRControls( camera )
+vrcontrols.standing = true
+// var camParent = new THREE.Group();
+// camParent.position.y = 1.6;
+// camParent.add( camera );
+// scene.add( camParent )
 
 
 //  This button is important. It toggles between normal in-browser view
@@ -128,6 +130,45 @@ window.addEventListener( 'resize', onWindowResize, false )
 //  Ok, we’ve got the basic Three.js overhead out of the way.
 //  Now let’s add some stuff to our empty scene.
 
+var light = new THREE.DirectionalLight( 0xFFFFFF, 1, 100 )
+light.position.set(  1, 10, -0.5 )
+scene.add( light )
+
+scene.add( new THREE.HemisphereLight( 0x909090, 0x404040 ))
+
+
+var floor = new THREE.Mesh(
+
+	new THREE.PlaneBufferGeometry( 6, 6, 12, 12 ),
+	new THREE.MeshStandardMaterial({
+
+		roughness: 1.0,
+		metalness: 0.0,
+		color: 0xFFFFFF,
+		transparent: true,
+		opacity: 0.8
+	})
+)
+floor.rotation.x = Math.PI / -2
+scene.add( floor )
+
+
+var wireframe = new THREE.Mesh(
+
+	floor.geometry.clone(),
+	new THREE.MeshBasicMaterial({
+
+		color: 0xFFFFFF,
+		wireframe: true
+	})
+)
+wireframe.rotation.x = Math.PI / -2
+wireframe.position.y = -0.001
+scene.add( wireframe )
+
+
+
+
 var torus = new THREE.Mesh(
 
 	new THREE.TorusKnotGeometry( 0.4, 0.15, 150, 20 ),
@@ -136,29 +177,6 @@ var torus = new THREE.Mesh(
 torus.position.set( -0.25, 1.4, -1.5 )
 scene.add( torus )
 
-var floor = new THREE.Mesh(
-
-	new THREE.BoxGeometry( 6, 0.2, 6, 6, 1, 6 ),
-	new THREE.MeshStandardMaterial({
-
-		roughness: 1.0,
-		metalness: 0.0,
-		color: 0x909090,
-		wireframe: true
-	})
-)
-floor.position.y = -0.1
-scene.add( floor )
-
-var light = new THREE.DirectionalLight()
-light.position.set(  1, 1.5, -0.5 )
-scene.add( light )
-
-scene.add( new THREE.HemisphereLight( 0x909090, 0x404040 ))
-
-
-
-
 //  DAT GUI for WebVR is just one of the coolest things ever.
 //  Huge, huge thanks to Jeff Nusz / http://custom-logic.com
 //  and Michael Chang / http://minmax.design for making this!!
@@ -166,13 +184,11 @@ scene.add( new THREE.HemisphereLight( 0x909090, 0x404040 ))
 
 dat.GUIVR.enableMouse( camera )
 var gui = dat.GUIVR.create( 'Settings' )
-gui.position.x =  0.15
-gui.position.z = -1.00
-gui.position.y =  1.5
-gui.rotation.y = -Math.PI / 4
+gui.position.set( 0.2, 0.8, -1 )
+gui.rotation.set( Math.PI / -6, 0, 0 )
 scene.add( gui )
 gui.add( torus.position, 'x', -1, 1 ).step( 0.001 ).name( 'Position X' )
-gui.add( torus.position, 'y', -1, 1 ).step( 0.001 ).name( 'Position Y' )
+gui.add( torus.position, 'y', -1, 2 ).step( 0.001 ).name( 'Position Y' )
 gui.add( torus.rotation, 'y', -Math.PI, Math.PI ).step( 0.001 ).name( 'Rotation' ).listen()
 
 
@@ -190,15 +206,16 @@ window.addEventListener( 'vr controller connected', function( event ){
 	//  It’s really a THREE.Object3D so you can just add it to your scene:
 
 	var controller = event.detail
-	scene.add( controller )
+	camParent.add( controller )
 
 
 	//  HEY HEY HEY! This is important. You need to make sure you do this.
-	//  For 6DOF (room-scale) controllers we need to set the standingMatrix
+	//  For standing experiences (not seated) we need to set the standingMatrix
 	//  otherwise you’ll wonder why your controller appears on the floor
-	//  instead of in your hands!
+	//  instead of in your hands! And for seated experiences this will have no
+	//  effect, so safe to do either way:
 
-	controller.standingMatrix = window.controls.getStandingMatrix()
+	controller.standingMatrix = window.vrcontrols.getStandingMatrix()
 
 
 	//  And for 3DOF (seated) controllers you need to set the controller.head
@@ -213,12 +230,12 @@ window.addEventListener( 'vr controller connected', function( event ){
 	//  Let’s fix that!
 
 	var
-	meshColorOff = 0xFF4040,
-	meshColorOn  = 0xFFFF00,
+	meshColorOff = 0xDB3236,//  Red.
+	meshColorOn  = 0xF4C20D,//  Yellow.
 	controllerMaterial = new THREE.MeshStandardMaterial({
 
 		color: meshColorOff,
-		shading: THREE.FlatShading
+		flatShading: true
 	}),
 	controllerMesh = new THREE.Mesh(
 
@@ -298,10 +315,10 @@ function update(){
 	//  And here’s your standard update and render stuff.
 	//  Nothing new to see here.
 
+	vrcontrols.update()
 	effect.requestAnimationFrame( update )
 	torus.rotation.y += 0.002
 	if( torus.rotation.y > Math.PI ) torus.rotation.y -= ( Math.PI * 2 )//  Keep DAT GUI display tidy!
-	controls.update()
 	effect.render( scene, camera )
 }
 update()
