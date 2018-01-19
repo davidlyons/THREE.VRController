@@ -98,11 +98,11 @@ var effect = new THREE.VREffect( renderer )
 var scene = new THREE.Scene()
 var camera   = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 10 )
 var vrcontrols = new THREE.VRControls( camera )
-vrcontrols.standing = true
-// var camParent = new THREE.Group();
-// camParent.position.y = 1.6;
-// camParent.add( camera );
-// scene.add( camParent )
+vrcontrols.standing = false
+var camParent = new THREE.Group();
+camParent.position.y = 1.6;
+camParent.add( camera );
+scene.add( camParent )
 
 
 //  This button is important. It toggles between normal in-browser view
