@@ -62,7 +62,6 @@ THREE.VRController = function( gamepad ) {
 		hand = '',
 		axes     = [],
 		buttons  = [],
-		buttonNames = [],
 		buttonNamePrimary;
 
 	this.style = '';
@@ -129,19 +128,6 @@ THREE.VRController = function( gamepad ) {
 
 	hand = gamepad.hand;
 
-
-	buttons.byName = {}
-	gamepad.buttons.forEach( function( button, i ) {
-
-		buttons[ i ] = {
-			name:     'button_'+ i,
-			value:     button.value,
-			isTouched: button.touched,
-			isPressed: button.pressed,
-			isPrimary: false
-		};
-	});
-
 	for ( var i = 0; i < gamepad.axes.length / 2; i++ ) {
 		var i0 = i*2, i1 = i*2+1;
 
@@ -170,6 +156,21 @@ THREE.VRController = function( gamepad ) {
 		}
 	}
 
+
+	//  Similarly we’ll create a default set of button objects.
+
+	buttons.byName = {}
+	gamepad.buttons.forEach( function( button, i ) {
+
+		buttons[ i ] = {
+			name:     'button_'+ i,
+			value:     button.value,
+			isTouched: button.touched,
+			isPressed: button.pressed,
+			isPrimary: false
+		};
+	});
+
 	//  Do we recognize this type of controller based on its gamepad.id?
 	//  If not we'll still roll with it, we just won't have axes and buttons
 	//  mapped to convenience strings. No biggie.
@@ -182,7 +183,6 @@ THREE.VRController = function( gamepad ) {
 
 	if ( supported !== undefined ) {
 		this.style = supported.style;
-		buttonNames = supported.buttons;
 		if( supported.buttons !== undefined ){
 
 			supported.buttons.forEach( function( buttonName, i ){
@@ -293,12 +293,14 @@ THREE.VRController = function( gamepad ) {
 		var
 			verbosity  = THREE.VRController.verbosity,
 			controller = this,
-			controllerInfo = '> #'+ controller.gamepad.index +' '+ controller.gamepad.id +' (Hand: '+ hand +') ';
+			controllerInfo = '> #'+ controller.gamepad.index +' '+ controller.gamepad.id +' ';
+
+			if ( hand ) controllerInfo += '(Hand: '+ hand +') ';
 
 		//  Did the hand change?
 
 		if ( hand !== controller.gamepad.hand ) {
-			if( verbosity >= 0.5 ) console.log( controllerInfo +'hand changed from "'+ hand +'" to "'+ controller.gamepad.hand +'"' );
+			if( verbosity >= 0.4 ) console.log( controllerInfo +'hand changed from "'+ hand +'" to "'+ controller.gamepad.hand +'"' );
 			hand = controller.gamepad.hand;
 			controller.dispatchEvent({ type: 'hand changed', hand: hand });
 		}
@@ -372,7 +374,7 @@ THREE.VRController = function( gamepad ) {
 
 			if ( button.value !== gamepad.buttons[ i ].value ) {
 				button.value = gamepad.buttons[ i ].value;
-				if( verbosity >= 0.5 ) console.log( controllerAndButtonInfo +'value changed', button.value );
+				if( verbosity >= 0.6 ) console.log( controllerAndButtonInfo +'value changed', button.value );
 				controller.dispatchEvent({ type: button.name  +' value changed', value: button.value });
 				if( isPrimary ) controller.dispatchEvent({ type: 'primary value changed', value: button.value });
 			}
@@ -488,7 +490,11 @@ THREE.VRController.prototype.update = function(){
 		//  If this is our first go-round with a 3DOF this then we’ll need to
 		//  create the arm model.
 
-		if ( this.armModel === undefined ) this.armModel = new OrientationArmModel();
+		if ( this.armModel === undefined ) {
+
+			if( THREE.VRController.verbosity >= 0.5 ) console.log( '> #'+ gamepad.index +' '+ gamepad.id +' (Hand: '+ this.getHand() +') adding OrientationArmModel' )
+			this.armModel = new OrientationArmModel();
+		}
 
 
 		//  Now and forever after we can just update this arm model
@@ -664,7 +670,7 @@ THREE.VRController.prototype.applyVibes = function(){
 //  This makes inspecting through the console a little bit saner.
 //  Expected values range from 0 (silent) to 1 (everything).
 
-THREE.VRController.verbosity = 0;//0.5
+THREE.VRController.verbosity = 1;//0.5
 
 
 //  We need to keep a record of found controllers
