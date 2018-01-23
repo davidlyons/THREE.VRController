@@ -146,8 +146,6 @@ THREE.VRController = function( gamepad ) {
 
 		supported.axes.forEach( function( axesMap, i ){
 
-			axes.byName[ axesMap.name ] = axesMap.indexes;
-
 			var i0 = axesMap.indexes[0];
 			var i1 = axesMap.indexes[1];
 
@@ -182,6 +180,8 @@ THREE.VRController = function( gamepad ) {
 				};
 			}
 
+			axes.byName[ axesMap.name ] = axes[ i ];
+
 		});
 
 	} else {
@@ -193,7 +193,7 @@ THREE.VRController = function( gamepad ) {
 			var axisY = gamepad.axes[ i1 ];
 
 			axes[ i ] = {
-				name: 'axes_' + i,
+				name: 'axes_' + (i+1),
 				indexes: [ i0, i1 ],
 				value: [ axisX, axisY ]
 			};
@@ -206,7 +206,6 @@ THREE.VRController = function( gamepad ) {
 
 	//  Similarly we’ll create a default set of button objects.
 
-	buttons.byName = {}
 	gamepad.buttons.forEach( function( button, i ) {
 
 		buttons[ i ] = {
@@ -216,20 +215,25 @@ THREE.VRController = function( gamepad ) {
 			isPressed: button.pressed,
 			isPrimary: false
 		};
+
 	});
 
 	if ( supported !== undefined ) {
 		this.style = supported.style;
-		if( supported.buttons !== undefined ){
 
+		if ( supported.buttons !== undefined ){
 			supported.buttons.forEach( function( buttonName, i ){
-
-				buttons[ i ].name = buttonName
-			})
+				buttons[ i ].name = buttonName;
+			});
 		}
+
 		buttonNamePrimary = supported.primary;
 	}
 
+	buttons.byName = {};
+	buttons.forEach( function( button ){
+		buttons.byName[ button.name ] = button;
+	});
 
 	//  This will allow you to listen for 'primary press began', etc.
 	//  even if we don't explicitly support this controller model.
@@ -238,10 +242,6 @@ THREE.VRController = function( gamepad ) {
 	//  If there is a trigger then that sits in slot #1 (Vive, Oculus,
 	//  Micrsoft) and becomes the primary button. But if there is no trigger
 	//  then the thumbpad becomes the primary button (Daydream, GearVR).
-
-	buttons.forEach( function( button ){
-		buttons.byName[ button.name ] = button;
-	});
 
 	if( buttonNamePrimary === undefined ) {
 		buttonNamePrimary = gamepad.buttons.length > 1 ? 'button_1' : 'button_0';
@@ -262,27 +262,24 @@ THREE.VRController = function( gamepad ) {
 
 	this.getAxes = function( index ) {
 
-		return axes[ index ];
-
-	};
-
-	this.getButton = function( buttonNameOrIndex ) {
-
-		if ( typeof buttonNameOrIndex === 'number' ) return buttons[ buttonNameOrIndex ];
-		else if ( typeof buttonNameOrIndex === 'string' ) {
-
-			return buttons.find( function( button ) {
-				return button.name === buttonNameOrIndex;
-			});
+		if ( nameOrIndex === undefined ) {
+			return axes;
+		} else if ( typeof nameOrIndex === 'string' ) {
+			return axes.byName[ nameOrIndex ];
+		} else if ( typeof nameOrIndex === 'number' ) {
+			return axes[ index ];
 		}
 
 	};
 
-	this.getButtonState = function( buttonName ) {
+	this.getButton = function( nameOrIndex ) {
 
-		return buttons.find( function( button ) {
-			return button.name === buttonName;
-		});
+		if ( typeof nameOrIndex === 'string' ) {
+			if ( nameOrIndex === 'primary' ) nameOrIndex = buttonNamePrimary;
+			return buttons.byName[ nameOrIndex ];
+		} else if ( typeof nameOrIndex === 'number' ) {
+			return buttons[ nameOrIndex ];
+		}
 
 	};
 
@@ -375,8 +372,8 @@ THREE.VRController = function( gamepad ) {
 				if ( axesVal[ 0 ] !== axisX || axesVal[ 1 ] !== axisY ) {
 					axesVal[ 0 ] = axisX;
 					axesVal[ 1 ] = axisY;
-					if( verbosity >= 0.7 ) console.log( controllerInfo +'axes ' + i + ' changed', axesVal );
-					controller.dispatchEvent({ type: 'axes ' + i + ' changed', axes: axesVal });
+					if ( verbosity >= 0.7 ) console.log( controllerInfo + axes[i].name + ' axes changed', axesVal );
+					controller.dispatchEvent({ type: axes[i].name + ' axes changed', axes: axesVal });
 				}
 
 				// emulate d-pad with axes
@@ -394,9 +391,9 @@ THREE.VRController = function( gamepad ) {
 
 						if ( axis.isPressed !== !!axisPressed ) {
 							axis.isPressed = !!axisPressed;
-							var suffix = ' ' + ( axis.isPressed ? 'began' : 'ended' );
-							if ( verbosity >= 0.5 ) console.log( controllerInfo +'axes ' + i + ' ' + d + ' press'+ suffix );
-							this.dispatchEvent({ type: 'axes ' + i + ' ' + d + ' press'+ suffix });
+							var eventAction = axis.isPressed ? 'began' : 'ended';
+							if ( verbosity >= 0.5 ) console.log( controllerInfo + axes[i].name + ' ' + d + ' press ' + eventAction );
+							this.dispatchEvent({ type: axes[i].name + ' ' + d + ' press ' + eventAction });
 						}
 					}
 				}
