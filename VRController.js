@@ -372,8 +372,17 @@ THREE.VRController = function( gamepad ) {
 				if ( axesVal[ 0 ] !== axisX || axesVal[ 1 ] !== axisY ) {
 					axesVal[ 0 ] = axisX;
 					axesVal[ 1 ] = axisY;
+
+					// Vive’s thumbpad is the only controller axes that uses
+					// a "Goofy" Y-axis. We’re going to INVERT it so you
+					// don’t have to worry about it!
+					var axesValues = [ axisX, axisY ];
+					if ( this.style === 'vive' && axes[i].name === 'thumbpad' ) {
+						axesValues[ 1 ] *= -1;
+					}
+
 					if ( verbosity >= 0.7 ) console.log( controllerInfo + axes[i].name + ' axes changed', axesVal );
-					controller.dispatchEvent({ type: axes[i].name + ' axes changed', axes: axesVal });
+					controller.dispatchEvent({ type: axes[i].name + ' axes changed', axes: axesValues });
 				}
 
 				// emulate d-pad with axes
