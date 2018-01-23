@@ -60,7 +60,7 @@ THREE.VRController = function( gamepad ) {
 	var
 		supported,
 		hand = '',
-		axes     = [],
+		axes = [],
 		buttons  = [],
 		buttonNamePrimary;
 
@@ -102,6 +102,8 @@ THREE.VRController = function( gamepad ) {
 		return ( Math.abs( v ) > this.axisThreshold ) ? v : 0;
 	};
 
+	var scope = this;
+
 	//  If the gamepad has a hapticActuators Array with something valid in
 	//  the first slot then we can send it an intensity (from 0 to 1) and a 
 	//  duration in milliseconds like so:
@@ -123,38 +125,83 @@ THREE.VRController = function( gamepad ) {
 	this.vibeChannels.prior = 0;
 
 
+	//  Do we recognize this type of controller based on its gamepad.id?
+	//  If not we'll still roll with it, we just won't have axes and buttons
+	//  mapped to convenience strings. No biggie.
+	//  Because Microsoft's controller appends unique ID numbers to the end of
+	//  its ID string we can no longer just do this:
+	//  supported = THREE.VRController.supported[ gamepad.id ]
+	//  Instead we must loop through some object keys first.
+
+	supported = THREE.VRController.getSupportedById( gamepad.id );
+
 	//  Setup states so we can watch for change events.
 	//  This includes hand, axes, and buttons.
 
 	hand = gamepad.hand;
 
-	for ( var i = 0; i < gamepad.axes.length / 2; i++ ) {
-		var i0 = i*2, i1 = i*2+1;
+	axes.byName = {};
 
-		var axisX = gamepad.axes[ i0 ];
-		var axisY = gamepad.axes[ i1 ];
+	if ( supported !== undefined && supported.axes !== undefined ) {
 
-		// only apply filter if both axes are below threshold
-		var filteredX = this.filterAxis( axisX );
-		var filteredY = this.filterAxis( axisY );
-		if ( !filteredX && !filteredY ) {
-			axisX = filteredX;
-			axisY = filteredY;
-		}
+		supported.axes.forEach( function( axesMap, i ){
 
-		axes[ i ] = {
-			value: [ axisX, axisY ]
-		};
+			axes.byName[ axesMap.name ] = axesMap.indexes;
 
-		if ( this.hasThumbstick ) {
-			axes[ i ].dpad = {
-				'up':    { index: i1, isPressed: false },
-				'down':  { index: i1, isPressed: false },
-				'left':  { index: i0, isPressed: false },
-				'right': { index: i0, isPressed: false }
+			var i0 = axesMap.indexes[0];
+			var i1 = axesMap.indexes[1];
+
+			var axisX = gamepad.axes[ i0 ];
+			var axisY = gamepad.axes[ i1 ];
+
+			var isThumbstick = axesMap.name.startsWith('thumbstick');
+
+			if ( isThumbstick ) {
+				// only apply filter if both axes are below threshold
+				var filteredX = scope.filterAxis( axisX );
+				var filteredY = scope.filterAxis( axisY );
+				if ( !filteredX && !filteredY ) {
+					axisX = filteredX;
+					axisY = filteredY;
+				}
+			}
+
+			axes[ i ] = {
+				name: axesMap.name,
+				indexes: axesMap.indexes,
+				value: [ axisX, axisY ],
+				isThumbstick: isThumbstick
+			};
+
+			if ( isThumbstick ) {
+				axes[ i ].dpad = {
+					'up':    { index: i1, isPressed: false },
+					'down':  { index: i1, isPressed: false },
+					'left':  { index: i0, isPressed: false },
+					'right': { index: i0, isPressed: false }
+				};
+			}
+
+		});
+
+	} else {
+
+		for ( var i = 0; i < gamepad.axes.length / 2; i++ ) {
+			var i0 = i*2, i1 = i*2+1;
+
+			var axisX = gamepad.axes[ i0 ];
+			var axisY = gamepad.axes[ i1 ];
+
+			axes[ i ] = {
+				name: 'axes_' + i,
+				indexes: [ i0, i1 ],
+				value: [ axisX, axisY ]
 			};
 		}
+
 	}
+
+	var axesNames = Object.keys( axes.byName );
 
 
 	//  Similarly we’ll create a default set of button objects.
@@ -170,16 +217,6 @@ THREE.VRController = function( gamepad ) {
 			isPrimary: false
 		};
 	});
-
-	//  Do we recognize this type of controller based on its gamepad.id?
-	//  If not we'll still roll with it, we just won't have axes and buttons
-	//  mapped to convenience strings. No biggie.
-	//  Because Microsoft's controller appends unique ID numbers to the end of
-	//  its ID string we can no longer just do this:
-	//  supported = THREE.VRController.supported[ gamepad.id ]
-	//  Instead we must loop through some object keys first.
-
-	supported = THREE.VRController.getSupportedById( gamepad.id );
 
 	if ( supported !== undefined ) {
 		this.style = supported.style;
@@ -203,11 +240,16 @@ THREE.VRController = function( gamepad ) {
 	//  then the thumbpad becomes the primary button (Daydream, GearVR).
 
 	buttons.forEach( function( button ){
+		buttons.byName[ button.name ] = button;
+	});
 
-		buttons.byName[ button.name ] = button
-	})
-	if( buttonNamePrimary === undefined ) buttonNamePrimary = gamepad.buttons.length > 1 ? 'button_1' : 'button_0'
-	buttons.byName[ buttonNamePrimary ].isPrimary = true
+	if( buttonNamePrimary === undefined ) {
+		buttonNamePrimary = gamepad.buttons.length > 1 ? 'button_1' : 'button_0';
+	}
+
+	if ( buttons.byName[ buttonNamePrimary ] ) {
+		buttons.byName[ buttonNamePrimary ].isPrimary = true;
+	}
 
 
 	//  Let's make some getters!
@@ -254,11 +296,13 @@ THREE.VRController = function( gamepad ) {
 		'\n\tStyle: '+ this.style +
 		'\n\tDOF: '+ this.dof +
 		'\n\tHand: '+ hand +
-		'\n\n\tAxes: '+ axes.reduce( function( a, e, i ){
+		'\n\n\tAxes: '+ axes.reduce( function( a, e ){ return (
 
-			return a + e + ( i < axes.length - 1 ? ', ' : '' )
+			a +
+			'\n\t\tName: "'+ e.name + '"'+
+			'\n\t\t\tValue: '+ e.value
 
-		}, '' ) +
+		)}, '' ) +
 		'\n\n\tButton primary: "'+ buttonNamePrimary +'"'+
 		'\n\tButtons:'+ buttons.reduce( function( a, e ){ return (
 
@@ -306,34 +350,37 @@ THREE.VRController = function( gamepad ) {
 		}
 
 
-		//  Do we have named axes? 
-		//  If so let's ONLY check and update those values.
+		//  update axes
 
 		for ( var i = 0; i < axes.length; i++ ) {
-			var i0 = i*2, i1 = i*2+1;
+			var i0 = axes[ i ].indexes[0];
+			var i1 = axes[ i ].indexes[1];
+
 			if ( gamepad.axes[ i0 ] && gamepad.axes[ i1 ] ) {
 
 				var axesVal = axes[ i ].value;
 				var axisX = gamepad.axes[ i0 ];
 				var axisY = gamepad.axes[ i1 ];
 
-				// only apply filter if both axes are below threshold
-				var filteredX = this.filterAxis( axisX );
-				var filteredY = this.filterAxis( axisY );
-				if ( !filteredX && !filteredY ) {
-					axisX = filteredX;
-					axisY = filteredY;
+				if ( axes[ i ].isThumbstick ) {
+					// only apply filter if both axes are below threshold
+					var filteredX = this.filterAxis( axisX );
+					var filteredY = this.filterAxis( axisY );
+					if ( !filteredX && !filteredY ) {
+						axisX = filteredX;
+						axisY = filteredY;
+					}
 				}
 
 				if ( axesVal[ 0 ] !== axisX || axesVal[ 1 ] !== axisY ) {
 					axesVal[ 0 ] = axisX;
 					axesVal[ 1 ] = axisY;
-					if( verbosity >= 0.5 ) console.log( controllerInfo +'axes ' + i + ' changed', axesVal );
+					if( verbosity >= 0.7 ) console.log( controllerInfo +'axes ' + i + ' changed', axesVal );
 					controller.dispatchEvent({ type: 'axes ' + i + ' changed', axes: axesVal });
 				}
 
 				// emulate d-pad with axes
-				if ( this.hasThumbstick ) {
+				if ( axes[ i ].isThumbstick ) {
 					var axisDPad = axes[ i ].dpad;
 					for ( d in axisDPad ) {
 						var axis = axisDPad[d];
@@ -348,7 +395,7 @@ THREE.VRController = function( gamepad ) {
 						if ( axis.isPressed !== !!axisPressed ) {
 							axis.isPressed = !!axisPressed;
 							var suffix = ' ' + ( axis.isPressed ? 'began' : 'ended' );
-							if( verbosity >= 0.5 ) console.log( controllerInfo +'axes ' + i + ' ' + d + ' press'+ suffix );
+							if ( verbosity >= 0.5 ) console.log( controllerInfo +'axes ' + i + ' ' + d + ' press'+ suffix );
 							this.dispatchEvent({ type: 'axes ' + i + ' ' + d + ' press'+ suffix });
 						}
 					}
@@ -670,7 +717,7 @@ THREE.VRController.prototype.applyVibes = function(){
 //  This makes inspecting through the console a little bit saner.
 //  Expected values range from 0 (silent) to 1 (everything).
 
-THREE.VRController.verbosity = 1;//0.5
+THREE.VRController.verbosity = 0.5;//0.5
 
 
 //  We need to keep a record of found controllers

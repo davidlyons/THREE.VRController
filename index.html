@@ -266,7 +266,7 @@ window.addEventListener( 'vr controller connected', function( event ){
 		dom.id = 'gamepad-' + controller.gamepad.index;
 		document.querySelector('ol').appendChild(dom);
 	}
-	dom.innerText = controller.gamepadStyle;
+	dom.innerText = controller.style;
 	dom.classList.add('connected');
 
 	//  Button events. How easy is this?!
