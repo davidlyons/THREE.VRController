@@ -264,7 +264,7 @@ window.addEventListener( 'vr controller connected', function( event ){
 	if (!dom) {
 		dom = document.createElement('li');
 		dom.id = 'gamepad-' + controller.gamepad.index;
-		document.querySelector('ol').appendChild(dom);
+		document.querySelector('#controllers').appendChild( dom );
 	}
 	dom.innerText = controller.style;
 	dom.classList.add('connected');
