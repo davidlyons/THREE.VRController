@@ -3,7 +3,7 @@
 THREE.VRController
 ==============================================================================
 
-![THREE.VRController](https://github.com/davidlyons/THREE.VRController/raw/master/VRController.png "THREE.VRController")
+![THREE.VRController](https://github.com/davidlyons/THREE.VRController/raw/master/VRController.jpg "THREE.VRController")
 
 __Generic VR controller handler for building [WebVR](https://webvr.rocks/) 
 experiences with [THREE.js](https://threejs.org/).__ 
