@@ -257,14 +257,14 @@ THREE.VRController = function( gamepad ) {
 
 	};
 
-	this.getAxes = function( index ) {
+	this.getAxes = function( nameOrIndex ) {
 
 		if ( nameOrIndex === undefined ) {
 			return axes;
 		} else if ( typeof nameOrIndex === 'string' ) {
 			return axes.byName[ nameOrIndex ];
 		} else if ( typeof nameOrIndex === 'number' ) {
-			return axes[ index ];
+			return axes[ nameOrIndex ];
 		}
 
 	};
