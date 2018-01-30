@@ -114,7 +114,7 @@ THREE.VRController = function( gamepad ) {
 	//      .wait(  500 ).set( 0.1 )
 	//      .wait( 1000 ).set( 0.0 )
 
-	const vibeChannel = [];
+	var vibeChannel = [];
 	vibeChannel.name = '';
 	vibeChannel.intensity = 0;
 	this.vibeChannels = [ vibeChannel ];
@@ -606,7 +606,7 @@ THREE.VRController.prototype.setVibe = function( name, intensity ){
 	}
 	if( typeof name === 'string' ){
 
-		const 
+		var
 		controller = this,
 		o = {}
 
@@ -615,7 +615,7 @@ THREE.VRController.prototype.setVibe = function( name, intensity ){
 		//  otherwise we want to remove any future commands 
 		//  while careful NOT to delete the 'intensity' property.
 
-		let channel = controller.vibeChannels.find( function( channel ){
+		var channel = controller.vibeChannels.find( function( channel ){
 
 			return channel.name === name
 		})
@@ -645,7 +645,7 @@ THREE.VRController.prototype.setVibe = function( name, intensity ){
 			else intensity = 0
 		}
 
-		let cursor = window.performance.now()
+		var cursor = window.performance.now()
 		o.set = function( intensity ){
 
 			channel.push([ cursor, intensity ])
@@ -665,7 +665,7 @@ THREE.VRController.prototype.renderVibes = function(){
 	//  First we need to clear away any past-due commands,
 	//  and update the current intensity value.
 
-	const 
+	var
 	now = window.performance.now(),
 	controller = this
 
@@ -682,7 +682,7 @@ THREE.VRController.prototype.renderVibes = function(){
 
 	//  Now each channel knows its current intensity so we can sum those values.
 
-	const sum = Math.min( 1, Math.max( 0, 
+	var sum = Math.min( 1, Math.max( 0,
 
 		this.vibeChannels.reduce( function( sum, channel ){
 
@@ -698,7 +698,7 @@ THREE.VRController.prototype.applyVibes = function(){
 	if( this.gamepad.hapticActuators && 
 		this.gamepad.hapticActuators[ 0 ]){
 
-		const
+		var
 		renderedIntensity = this.renderVibes(),
 		now = window.performance.now()
 
