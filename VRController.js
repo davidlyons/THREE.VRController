@@ -1224,6 +1224,16 @@ THREE.VRController.supported = {
 
 	},
 
+	'Cardboard Button': {
+
+		style: 'cardboard',
+		buttons: [
+			'screen'
+		],
+		primary: 'screen'
+
+	},
+
 	'xbox': {
 
 		style: 'xbox',
