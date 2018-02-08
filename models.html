@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>THREE.VRController Gamepad Tester</title>
+
+		<style>
+			html { overflow: hidden; }
+
+			body {
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				font-family: Arial, sans-serif;
+				font-size: 13px;
+				line-height: 20px;
+				color: #333;
+				background: #BBBBBB;
+			}
+		</style>
+
+	</head>
+
+	<body>
+
+		<div id="container"></div>
+
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/build/three.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/OrbitControls.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/FBXLoader.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/GLTFLoader.js"></script>
+
+		<script>
+
+			// downloads/gamepad/html5-rocks-gamepad-tester
+
+			// https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
+			// http://luser.github.io/gamepadtest/
+			// https://github.com/luser/gamepadtest
+
+			var container = document.getElementById('container');
+
+			var scene = new THREE.Scene();
+
+			var renderer = new THREE.WebGLRenderer({ antialias: true });
+			renderer.setClearColor( 0xBBBBBB, 1 );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+			var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, .001, 100000 );
+			camera.position.set( 0.1, 0.5, 0 );
+
+			var cameraRig = new THREE.Group();
+			cameraRig.position.z = 0.7;
+
+			cameraRig.add( camera );
+			scene.add( cameraRig );
+
+			var controls = new THREE.OrbitControls( camera, renderer.domElement )
+			controls.enableDamping = true;
+			controls.target.set( 0, 0, -0.7 );
+
+			// ------------------------------------------------------------
+
+			THREE.DefaultLoadingManager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+				// console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+			};
+
+			THREE.DefaultLoadingManager.onLoad = function ( ) {
+				container.appendChild( renderer.domElement );
+				loop();
+			};
+
+			//
+
+			var fbxLoader = new THREE.FBXLoader();
+			var gltfLoader = new THREE.GLTFLoader();
+			var textureLoader = new THREE.TextureLoader();
+
+			// ------------------------------------------------------------
+
+			var laserRadius = 0.001;
+			var laserLength = 1;
+			var laserGeo = new THREE.CylinderBufferGeometry( laserRadius, laserRadius, laserLength, 8, 1 );
+			// set origin to bottom side for scale.y
+			laserGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, laserLength/2, 0 ) );
+			var laserMat = new THREE.MeshBasicMaterial({ color: 0x653A8E });
+
+			var laser = new THREE.Mesh( laserGeo, laserMat );
+			laser.name = 'laser';
+			laser.rotation.x = - Math.PI / 2;
+			laser.userData.defaultLength = 6;
+			laser.scale.y = laser.userData.defaultLength;
+			laser.userData.length = new THREE.Vector3();
+			// laser.position.set( 0, 0.18, 0 );
+			// scene.add( laser );
+
+			// ------------------------------------------------------------
+
+			// xbox
+
+			fbxLoader.load( 'models/xbox-controller/xbox-controller.fbx', function ( fbx ) {
+				var xbox = fbx.children[0];
+
+				var body = xbox.getObjectByName('body');
+						body.material[2].bumpScale = 0.00025 / 3;
+
+				var aR = xbox.getObjectByName('axisRight');
+						aR.material[0].normalMap.wrapS = THREE.RepeatWrapping;
+						aR.material[0].normalScale.setScalar( 0.7 );
+
+				xbox.position.set( -.75, 0, 0 );
+				scene.add( xbox );
+
+			});
+
+			// ------------------------------------------------------------
+
+			// oculus remote
+
+			fbxLoader.load( 'models/oculus-remote/oculus-remote.fbx', function ( fbx ) {
+				var oculusRemote = fbx.children[0];
+				oculusRemote.position.set( -0.6, 0, 0 );
+				scene.add( oculusRemote );
+			});
+
+			// ------------------------------------------------------------
+
+			// oculus touch
+
+			var oculusTouchLeft;
+			fbxLoader.load( 'models/oculus-touch/oculus-touch-left.fbx', function ( fbx ) {
+				oculusTouchLeft = fbx.children[0];
+				oculusTouchLeft.children[0].material.specular.setHex( 0x111111 );
+				oculusTouchLeft.position.set( -0.05, 0, 0 );
+				scene.add( oculusTouchLeft );
+
+				var pointPose = new THREE.Group();
+				pointPose.position.z = -0.035;
+				oculusTouchLeft.add( pointPose );
+				pointPose.add( laser.clone() );
+			});
+
+			//
+
+			var oculusTouchRight;
+			fbxLoader.load( 'models/oculus-touch/oculus-touch-right.fbx', function ( fbx ) {
+				oculusTouchRight = fbx.children[0];
+				oculusTouchRight.children[0].material.specular.setHex( 0x111111 );
+				oculusTouchRight.position.set( 0.05, 0, 0 );
+				scene.add( oculusTouchRight );
+
+				var pointPose = new THREE.Group();
+				pointPose.position.z = -0.035;
+				oculusTouchRight.add( pointPose );
+				pointPose.add( laser.clone() );
+			});
+
+			// ------------------------------------------------------------
+
+			// vive
+
+			fbxLoader.load( 'models/vive-controller/vive-controller-1-5.fbx', function ( fbx ) {
+				var vive = fbx.children[0];
+				vive.children[0].material.specular.setHex( 0x111111 );
+				vive.position.set( -0.25, 0, 0 );
+				scene.add( vive );
+
+				vive.add( laser.clone() );
+			});
+
+			// ------------------------------------------------------------
+
+			// daydream
+
+			var daydreamPath = 'models/daydream-controller/';
+			var daydreamMat = new THREE.MeshBasicMaterial({
+				map: textureLoader.load( daydreamPath + 'daydream.png' ),
+				transparent: true
+			});
+
+			fbxLoader.load( daydreamPath + 'daydream.fbx', function ( fbx ) {
+				var daydream = fbx.children[0];
+				daydream.material = daydreamMat;
+				daydream.position.set( -0.5, 0, 0 );
+				scene.add( daydream );
+
+				var pointPose = new THREE.Group();
+				pointPose.position.z = -0.048;
+				daydream.add( pointPose );
+				pointPose.add( laser.clone() );
+			});
+
+			// ------------------------------------------------------------
+
+			// gear vr controller
+
+			fbxLoader.load( 'models/gearvr-controller/gearvr-controller.fbx', function ( fbx ) {
+				var gearController = fbx.children[0];
+				gearController.getObjectByName('body').material.side = THREE.DoubleSide;
+				gearController.position.set( -0.4, 0, 0 );
+				scene.add( gearController );
+
+				gearController.add( laser.clone() );
+			});
+
+			// ------------------------------------------------------------
+
+			// gear vr touchpad
+
+			var gearTouchpadGeo = new THREE.PlaneBufferGeometry( .065, .05 );
+			var gearTouchpadMat =  new THREE.MeshBasicMaterial({
+				color: 0x333333,
+				side: THREE.DoubleSide
+			});
+			var gearTouchpad = new THREE.Mesh( gearTouchpadGeo, gearTouchpadMat );
+			gearTouchpad.rotation.x = Math.PI / 2;
+			gearTouchpad.position.set( -.9, 0, 0 );
+			scene.add( gearTouchpad );
+
+			// ------------------------------------------------------------
+			// ------------------------------------------------------------
+
+			// windows mr
+
+			// ------------------------------------------------------------
+
+			// binary gltf (glb) files from aframe assets
+
+			// lenovo 045E-065B
+
+			var lenovoMat = new THREE.MeshPhongMaterial({
+				specular: 0x898989,
+				shininess: 5,
+				map: textureLoader.load('models/windows-mr/lenovo/lenovo.png')
+			});
+
+			gltfLoader.load('models/windows-mr/lenovo/left.glb', function(gltf){
+				var obj = gltf.scene.children[0];
+				obj.position.x = .25;
+				scene.add( obj );
+
+				obj.traverse(function(node){
+					if ( node.isMesh) {
+						node.material = lenovoMat;
+					}
+				});
+
+				var pointPose = obj.getObjectByName('POINTING_POSE');
+				pointPose.add( laser.clone() );
+			});
+
+			gltfLoader.load('models/windows-mr/lenovo/right.glb', function(gltf){
+				var obj = gltf.scene.children[0];
+				obj.position.x = 0.42;
+				scene.add( obj );
+
+				obj.traverse(function(node){
+					if ( node.isMesh) {
+						node.material = lenovoMat;
+					}
+				});
+
+				var pointPose = obj.getObjectByName('POINTING_POSE');
+				pointPose.add( laser.clone() );
+			});
+
+			// ------------------------------------
+
+			// samsung 045E-065D
+
+			var samsungMat = new THREE.MeshPhongMaterial({
+				specular: 0x898989,
+				shininess: 5,
+				map: textureLoader.load('models/windows-mr/samsung/samsung.png')
+			});
+
+			gltfLoader.load('models/windows-mr/samsung/left.glb', function(gltf){
+				var obj = gltf.scene.children[0];
+				obj.position.x = .62;
+				scene.add( obj );
+
+				obj.traverse(function(node){
+					if ( node.isMesh) {
+						node.material = samsungMat;
+					}
+				});
+
+				var pointPose = obj.getObjectByName('POINTING_POSE');
+				pointPose.add( laser.clone() );
+			});
+
+			gltfLoader.load('models/windows-mr/samsung/right.glb', function(gltf){
+				var obj = gltf.scene.children[0];
+				obj.position.x = .8;
+				scene.add( obj );
+
+				obj.traverse(function(node){
+					if ( node.isMesh) {
+						node.material = samsungMat;
+					}
+				});
+
+				var pointPose = obj.getObjectByName('POINTING_POSE');
+				pointPose.add( laser.clone() );
+			});
+
+
+			// ------------------------------------------------------------
+
+			// default
+
+			var meshColorOff = 0xFF4040;
+			var meshColorOn  = 0xFFFF00;
+
+			var genericGroup = new THREE.Group();
+
+			var genericMaterial = new THREE.MeshStandardMaterial({
+				color: meshColorOff, 
+				flatShading: true
+			});
+
+			var genericGeo = new THREE.CylinderGeometry( 0.005, 0.05, 0.1, 6 );
+			var genericMesh = new THREE.Mesh( genericGeo, genericMaterial );
+
+			var handleMesh = new THREE.Mesh(
+				new THREE.BoxGeometry( 0.03, 0.1, 0.03 ),
+				genericMaterial
+			);
+
+			genericMesh.rotation.x = -Math.PI / 2;
+			handleMesh.position.y = -0.05;
+			genericMesh.add( handleMesh );
+			genericGroup.add( genericMesh );
+			scene.add( genericGroup );
+			genericGroup.add( laser.clone() );
+			genericGroup.position.set( -1.05, 0, 0 );
+
+			// ------------------------------------------------------------
+			// ------------------------------------------------------------
+
+			// lights
+
+			var aLight = new THREE.AmbientLight( 0x404040 );
+			scene.add( aLight );
+
+			var dLight1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			dLight1.position.set( 1, 1, 1 );
+			scene.add( dLight1 );
+
+			var dLight2 = new THREE.DirectionalLight( 0xffffff, 0.4 );
+			dLight2.position.set( -1, 0.7, 1 );
+			scene.add( dLight2 );
+
+			var dLight3 = new THREE.DirectionalLight( 0xffffff, 0.3 );
+			dLight3.position.set( 0, 1, -2 );
+			scene.add( dLight3 );
+
+			var dLight4 = new THREE.DirectionalLight( 0xffffff, 0.3 );
+			dLight4.position.set( 0, -1, -2 );
+			scene.add( dLight4 );
+
+			// var dlh1 = new THREE.DirectionalLightHelper( dLight1, 0.2 );
+			// var dlh2 = new THREE.DirectionalLightHelper( dLight2, 0.2 );
+			// var dlh3 = new THREE.DirectionalLightHelper( dLight3, 0.2 );
+			// var dlh4 = new THREE.DirectionalLightHelper( dLight4, 0.2 );
+			// scene.add( dlh1, dlh2, dlh3, dlh4 );
+
+			// better lighting reference:
+			// https://xboxdesignlab.xbox.com/en-US/customize
+
+			var gh = new THREE.GridHelper( 4, 8, 0x000000, 0x808080 );
+			gh.material.transparent = true
+			gh.material.opacity = 0.3;
+			scene.add( gh );
+
+			// --------------------------------------------------------------
+
+			// var imageLoader = new THREE.ImageLoader();
+			// var xboxPath = 'models/xbox-controller/';
+			// var bump = imageLoader.load(xboxPath + 'xbox-controller-bump.jpg');
+			// var normal = imageLoader.load(xboxPath + 'xbox-controller-normal.jpg');
+			// var color = imageLoader.load(xboxPath + 'xbox-controller-color.jpg');
+
+			// --------------------------------------------------------------
+
+			window.addEventListener( 'resize', resize, false );
+			function resize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			//
+
+			function loop() {
+				requestAnimationFrame( loop );
+				controls.update();
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>

@@ -581,8 +581,10 @@ THREE.VRController.prototype.update = function(){
 	//  Whereas this VRController instance is for the VR controllers that
 	//  you hold in your hands.
 
-	this.matrix.multiplyMatrices( this.standingMatrix, this.matrix );
-	this.matrixWorldNeedsUpdate = true;
+	if ( this.standingMatrix ) { // standingMatrix was removed in three.js r89
+		this.matrix.multiplyMatrices( this.standingMatrix, this.matrix );
+		this.matrixWorldNeedsUpdate = true;
+	}
 
 };
 

@@ -1,23 +1,31 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>THREE.VRController demo</title>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<title>THREE.VRController Gamepad Tester</title>
+
 		<style>
-			* { box-sizing: border-box; }
+			html { overflow: hidden; }
+
 			body {
 				margin: 0;
+				padding: 0;
 				overflow: hidden;
-				font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-				font-size:   13px;
+				font-family: Arial, sans-serif;
+				font-size: 13px;
 				line-height: 20px;
+				color: #333;
+				background: #BBBBBB;
 			}
-			button {
-				border-radius: 4px;
-				background-color: #F40 !important;
-				padding: 12px !important;
-			}
+
+			a { color: #0088cc; text-decoration: none; }
+			a:hover, a:focus { color: #005580; text-decoration: underline; }
+
 			#controllers {
 				position: absolute;
 				bottom: 20px;
@@ -53,279 +61,782 @@
 				color: #0a0;
 			}
 		</style>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/build/three.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/VRControls.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/effects/VREffect.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r87/examples/js/vr/WebVR.js"></script>
-		<script src="https://cdn.rawgit.com/dataarts/dat.guiVR/master/build/datguivr.js"></script>
-		<script src="VRController.js"></script>
+
 	</head>
+
 	<body>
+
+		<div id="container"></div>
 
 		<ol id="controllers"></ol>
 
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/build/three.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/OrbitControls.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/FBXLoader.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/GLTFLoader.js"></script>
+		<script src="https://cdn.rawgit.com/dataarts/dat.guiVR/master/build/datguivr.js"></script>
+
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/VRControls.js"></script>
+		<!-- <script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/effects/VREffect.js"></script> -->
+		<script src="VREffect.js"></script> <!-- modified version with mono mirroring -->
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r87/examples/js/vr/WebVR.js"></script>
+
+		<script src="VRController.js"></script>
+
+
 		<script>
 
+			// davidscottlyons.com/gamepad-tester
 
+			// https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
+			// http://luser.github.io/gamepadtest/
+			// https://github.com/luser/gamepadtest
 
+			var container = document.getElementById( 'container' );
 
-//  Hi! I think you’re going to like this VR stuff :)
-//  This index.html file created by Jeff Nusz / http://custom-logic.com
-//  refactored and commented by Stewart Smith / http://stewartsmith.io
-//  because this stuff is fun and you can learn it with us!
-//  The real heart of this is VRController.js -- check it out!
+			var scene = new THREE.Scene();
 
+			var renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setClearColor( 0xBBBBBB, 1 );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
 
+			var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, .001, 100000 );
 
+			var cameraRig = new THREE.Group();
+			cameraRig.position.set( 0, 1.6, 0.7 );
 
-//  Does this browser support the WebVR API?
-//  Here’s how to download and configure one that does:
-//  https://webvr.rocks
+			cameraRig.add( camera );
+			scene.add( cameraRig );
 
-if( WEBVR.isAvailable() === false ) document.body.appendChild( WEBVR.getMessage() )
+			var controls = {
+				orbit: new THREE.OrbitControls( camera, renderer.domElement ),
+				vr: new THREE.VRControls( camera )
+			};
 
+			controls.vr.standing = false;
 
+			controls.orbit.target.set( 0, -0.8, -1.5 );
 
-var renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.setClearColor( 0xCCCCCC )
-renderer.setPixelRatio( window.devicePixelRatio )
-renderer.setSize( window.innerWidth, window.innerHeight )
-document.body.appendChild( renderer.domElement )
-var effect = new THREE.VREffect( renderer )
+			//
 
+			var hitObjects = [];
+			var raycaster = new THREE.Raycaster();
+			var intersected = [];
+			var tempMatrix = new THREE.Matrix4();
+			var mouse = new THREE.Vector2();
+			mouse.active = false;
+			var center = { x: 0, y: 0 };
 
+			var torus = new THREE.Mesh(
+				new THREE.TorusKnotGeometry( 0.4, 0.15, 150, 20 ),
+				new THREE.MeshStandardMaterial({ roughness: 0.01, metalness: 0.2 })
+			);
+			torus.position.set( -0.25, 1.4, -1.5 );
+			scene.add( torus );
+			hitObjects.push( torus );
 
-var scene = new THREE.Scene()
-var camera   = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 10 )
-var vrcontrols = new THREE.VRControls( camera )
-vrcontrols.standing = false
-var camParent = new THREE.Group();
-camParent.position.y = 1.6;
-camParent.add( camera );
-scene.add( camParent )
+			//
 
+			dat.GUIVR.enableMouse( camera );
+			var gui = dat.GUIVR.create( 'Settings' );
+			gui.position.set( 0.2, 0.8, -1 )
+			gui.rotation.set( Math.PI / -6, 0, 0 )
+			scene.add( gui );
+			gui.add( torus.position, 'x', -1, 1 ).step( 0.001 ).name( 'Position X' );
+			gui.add( torus.position, 'y', -1, 2 ).step( 0.001 ).name( 'Position Y' );
+			gui.add( torus.rotation, 'y', -Math.PI, Math.PI ).step( 0.001 ).name( 'Rotation' ).listen();
 
-//  This button is important. It toggles between normal in-browser view
-//  and the brand new WebVR in-your-goggles view!
+			//
 
-WEBVR.getVRDisplay( function( display ){
+			var effect = new THREE.VREffect( renderer );
 
-	document.body.appendChild( WEBVR.getButton( display, renderer.domElement ))
-})
+			if ( WEBVR.isAvailable() ) {
 
+				window.addEventListener( 'vrdisplaypresentchange', function() {
+					controls.orbit.enabled = !effect.isPresenting;
+					if ( !effect.isPresenting ) {
+						camera.position.set( 0, 0.5, 0 );
+					}
+				}, false );
 
-//  Should things change in the future we’ve got you covered:
+				WEBVR.getVRDisplay( function( display ){
+					document.body.appendChild( WEBVR.getButton( display, renderer.domElement ))
+				});
 
-function onWindowResize(){
+			} else {
 
-	camera.aspect = window.innerWidth / window.innerHeight
-	camera.updateProjectionMatrix()
-	effect.setSize( window.innerWidth, window.innerHeight )
-}
-window.addEventListener( 'resize', onWindowResize, false )
+				document.body.appendChild( WEBVR.getMessage() );
 
+			}
 
+			// --------------------------------------------------------------------
+			// --------------------------------------------------------------------
 
+			var fbxLoader = new THREE.FBXLoader();
+			var gltfLoader = new THREE.GLTFLoader();
+			var textureLoader = new THREE.TextureLoader();
 
-//  Ok, we’ve got the basic Three.js overhead out of the way.
-//  Now let’s add some stuff to our empty scene.
+			var controllerSetup = {
+				'xbox': function( controller ) {
+					fbxLoader.load( 'models/xbox-controller/xbox-controller.fbx', function ( fbx ) {
+						var xbox = fbx.children[0];
 
-var light = new THREE.DirectionalLight( 0xFFFFFF, 1, 100 )
-light.position.set(  1, 10, -0.5 )
-scene.add( light )
+						var body = xbox.getObjectByName('body');
+								body.material[2].bumpScale = 0.00025 / 3;
 
-scene.add( new THREE.HemisphereLight( 0x909090, 0x404040 ))
+						var aR = xbox.getObjectByName('axisRight');
+								aR.material[0].normalMap.wrapS = THREE.RepeatWrapping;
+								aR.material[0].normalScale.setScalar( 0.7 );
 
+						xbox.position.x = 0.3 * controller.gamepad.index; // for multiple xbox gamepads
+						xbox.position.y = 0.9;
+						scene.add( xbox );
 
-var floor = new THREE.Mesh(
+						// --------------------------------------------------------------
+						// begin xbox events
+
+						var aDown = function() {
+							xbox.getObjectByName('A').position.y -= .0004;
+						};
+
+						var aUp = function() {
+							xbox.getObjectByName('A').position.y += .0004;
+						};
+
+						var bDown = function() {
+							xbox.getObjectByName('B').position.y -= .0004;
+						};
+
+						var bUp = function() {
+							xbox.getObjectByName('B').position.y += .0004;
+						};
+
+						var xDown = function() {
+							xbox.getObjectByName('X').position.y -= .0004;
+						};
+
+						var xUp = function() {
+							xbox.getObjectByName('X').position.y += .0004;
+						};
+
+						var yDown = function() {
+							xbox.getObjectByName('Y').position.y -= .0004;
+						};
+
+						var yUp = function() {
+							xbox.getObjectByName('Y').position.y += .0004;
+						};
+
+						var bumperLeftDown = function() {
+							xbox.getObjectByName('bumperLeft').rotation.y += THREE.Math.degToRad( 1 );
+						};
+
+						var bumperLeftUp = function() {
+							xbox.getObjectByName('bumperLeft').rotation.y -= THREE.Math.degToRad( 1 );
+						};
+
+						var bumperRightDown = function() {
+							xbox.getObjectByName('bumperRight').rotation.y -= THREE.Math.degToRad( 1 );
+						};
+
+						var bumperRightUp = function() {
+							xbox.getObjectByName('bumperRight').rotation.y += THREE.Math.degToRad( 1 );
+						};
+
+						// var triggerLeftDown = function() {
+							// console.log('trigger left down');
+						// };
+
+						// var triggerLeftUp = function() {
+							// console.log('trigger left up');
+						// };
+
+						// var triggerRightDown = function() {
+							// console.log('trigger right down');
+						// };
+
+						// var triggerRightUp = function() {
+							// console.log('trigger right up');
+						// };
 
-	new THREE.PlaneBufferGeometry( 6, 6, 12, 12 ),
-	new THREE.MeshStandardMaterial({
+						var triggerLeftChanged = function(e) {
+							xbox.getObjectByName('triggerLeft').rotation.x = - e.value * THREE.Math.degToRad( 20 );
+						};
 
-		roughness: 1.0,
-		metalness: 0.0,
-		color: 0xFFFFFF,
-		transparent: true,
-		opacity: 0.8
-	})
-)
-floor.rotation.x = Math.PI / -2
-scene.add( floor )
+						var triggerRightChanged = function(e) {
+							xbox.getObjectByName('triggerRight').rotation.x = - e.value * THREE.Math.degToRad( 20 );
+						};
 
+						var selectDown = function() {
+							xbox.getObjectByName('back').position.y -= .0004;
+						};
 
-var wireframe = new THREE.Mesh(
+						var selectUp = function() {
+							xbox.getObjectByName('back').position.y += .0004;
+						};
 
-	floor.geometry.clone(),
-	new THREE.MeshBasicMaterial({
+						var startUp = function() {
+							xbox.getObjectByName('start').position.y += .0004;
+						};
 
-		color: 0xFFFFFF,
-		wireframe: true
-	})
-)
-wireframe.rotation.x = Math.PI / -2
-wireframe.position.y = -0.001
-scene.add( wireframe )
+						var startDown = function() {
+							xbox.getObjectByName('start').position.y -= .0004;
+						};
 
+						var leftAxisDown = function() {
+							xbox.getObjectByName('axisLeft').position.y -= .0004;
+						};
 
+						var leftAxisUp = function() {
+							xbox.getObjectByName('axisLeft').position.y += .0004;
+						};
 
+						var rightAxisDown = function() {
+							xbox.getObjectByName('axisRight').position.y -= .0004;
+						};
 
-var torus = new THREE.Mesh(
+						var rightAxisUp = function() {
+							xbox.getObjectByName('axisRight').position.y += .0004;
+						};
+
+						var dUpDown = function() {
+							xbox.getObjectByName('dPad').rotation.x -= THREE.Math.degToRad( 2 );
+						};
+
+						var dUpUp = function() {
+							xbox.getObjectByName('dPad').rotation.x += THREE.Math.degToRad( 2 );
+						};
+
+						var dDownDown = function() {
+							xbox.getObjectByName('dPad').rotation.x += THREE.Math.degToRad( 2 );
+						};
+
+						var dDownUp = function() {
+							xbox.getObjectByName('dPad').rotation.x -= THREE.Math.degToRad( 2 );
+						};
+
+						var dLeftDown = function() {
+							xbox.getObjectByName('dPad').rotation.z += THREE.Math.degToRad( 2 );
+						};
+
+						var dLeftUp = function() {
+							xbox.getObjectByName('dPad').rotation.z -= THREE.Math.degToRad( 2 );
+						};
+
+						var dRightDown = function() {
+							xbox.getObjectByName('dPad').rotation.z -= THREE.Math.degToRad( 2 );
+						};
+
+						var dRightUp = function() {
+							xbox.getObjectByName('dPad').rotation.z += THREE.Math.degToRad( 2 );
+						};
+
+						var leftAxisChanged = function(e) {
+							var al = xbox.getObjectByName('axisLeft');
+							al.rotation.z = - e.axes[0] * THREE.Math.degToRad( 20 );
+							al.rotation.x = e.axes[1] * THREE.Math.degToRad( 20 );
+						};
+
+						var rightAxisChanged = function(e) {
+							var ar = xbox.getObjectByName('axisRight');
+							ar.rotation.z = - e.axes[0] * THREE.Math.degToRad( 20 );
+							ar.rotation.x = e.axes[1] * THREE.Math.degToRad( 20 );
+						};
+
+						controller.addEventListener('a press began', aDown);
+						controller.addEventListener('a press ended', aUp);
+
+						controller.addEventListener('b press began', bDown);
+						controller.addEventListener('b press ended', bUp);
+
+						controller.addEventListener('x press began', xDown);
+						controller.addEventListener('x press ended', xUp);
+
+						controller.addEventListener('y press began', yDown);
+						controller.addEventListener('y press ended', yUp);
+
+						controller.addEventListener('bumper-left press began', bumperLeftDown);
+						controller.addEventListener('bumper-left press ended', bumperLeftUp);
+
+						controller.addEventListener('bumper-right press began', bumperRightDown);
+						controller.addEventListener('bumper-right press ended', bumperRightUp);
+
+						controller.addEventListener('trigger-left press began', triggerLeftDown);
+						controller.addEventListener('trigger-left press ended', triggerLeftUp);
+
+						controller.addEventListener('trigger-right press began', triggerRightDown);
+						controller.addEventListener('trigger-right press ended', triggerRightUp);
+
+						controller.addEventListener('select press began', selectDown);
+						controller.addEventListener('select press ended', selectUp);
+
+						controller.addEventListener('start press began', startDown);
+						controller.addEventListener('start press ended', startUp);
+
+						controller.addEventListener('thumbstick-left press began', leftAxisDown);
+						controller.addEventListener('thumbstick-left press ended', leftAxisUp);
+						
+						controller.addEventListener('thumbstick-right press began', rightAxisDown);
+						controller.addEventListener('thumbstick-right press ended', rightAxisUp);
+
+						controller.addEventListener('d-up press began', dUpDown);
+						controller.addEventListener('d-up press ended', dUpUp);
+
+						controller.addEventListener('d-down press began', dDownDown);
+						controller.addEventListener('d-down press ended', dDownUp);
+
+						controller.addEventListener('d-left press began', dLeftDown);
+						controller.addEventListener('d-left press ended', dLeftUp);
+
+						controller.addEventListener('d-right press began', dRightDown);
+						controller.addEventListener('d-right press ended', dRightUp);
+						
+						controller.addEventListener('thumbstick-left up press began', dUpDown);
+						controller.addEventListener('thumbstick-left up press ended', dUpUp);
+						controller.addEventListener('thumbstick-left down press began', dDownDown);
+						controller.addEventListener('thumbstick-left down press ended', dDownUp);
+						controller.addEventListener('thumbstick-left left press began', dLeftDown);
+						controller.addEventListener('thumbstick-left left press ended', dLeftUp);
+						controller.addEventListener('thumbstick-left right press began', dRightDown);
+						controller.addEventListener('thumbstick-left right press ended', dRightUp);
+
+						controller.addEventListener('thumbstick-right up press began', dUpDown);
+						controller.addEventListener('thumbstick-right up press ended', dUpUp);
+						controller.addEventListener('thumbstick-right down press began', dDownDown);
+						controller.addEventListener('thumbstick-right down press ended', dDownUp);
+						controller.addEventListener('thumbstick-right left press began', dLeftDown);
+						controller.addEventListener('thumbstick-right left press ended', dLeftUp);
+						controller.addEventListener('thumbstick-right right press began', dRightDown);
+						controller.addEventListener('thumbstick-right right press ended', dRightUp);
+
+						controller.addEventListener('trigger-left value changed', triggerLeftChanged);
+						controller.addEventListener('trigger-right value changed', triggerRightChanged);
+
+						controller.addEventListener('thumbstick-left axes changed', leftAxisChanged);
+						controller.addEventListener('thumbstick-right axes changed', rightAxisChanged);
+
+						// end xbox events
+						// --------------------------------------------------------------
+
+					}); // end xbox fbx loader callback
+
+				},
+				'oculus-remote': function( controller ) {
+
+					fbxLoader.load( 'models/oculus-remote/oculus-remote.fbx', function ( fbx ) {
+						var oculusRemote = fbx.children[0];
+						oculusRemote.position.set( 0, 0.9, 0 );
+						scene.add( oculusRemote );
+					});
+
+				},
+				'oculus-touch-left': function( controller ) {
+
+					fbxLoader.load( 'models/oculus-touch/oculus-touch-left.fbx', function ( fbx ) {
+						var oculusTouchLeft = fbx.children[0];
+						oculusTouchLeft.children[0].material.specular.setHex( 0x111111 );
+						controller.add( oculusTouchLeft );
+
+						var pointPose = new THREE.Group();
+						pointPose.position.z = -0.035;
+						oculusTouchLeft.add( pointPose );
+						pointPose.add( controller.userData.laser );
+					});
+
+				},
+				'oculus-touch-right': function( controller ) {
+
+					fbxLoader.load( 'models/oculus-touch/oculus-touch-right.fbx', function ( fbx ) {
+						var oculusTouchRight = fbx.children[0];
+						oculusTouchRight.children[0].material.specular.setHex( 0x111111 );
+						controller.add( oculusTouchRight );
+
+						var pointPose = new THREE.Group();
+						pointPose.position.z = -0.035;
+						oculusTouchRight.add( pointPose );
+						pointPose.add( controller.userData.laser );
+					});
+
+				},
+				'vive': function( controller ) {
+
+					fbxLoader.load( 'models/vive-controller/vive-controller-1-5.fbx', function ( fbx ) {
+						var vive = fbx.children[0];
+						vive.children[0].material.specular.setHex( 0x111111 );
+						controller.add( vive );
+					});
+
+				},
+				'microsoft': function( controller ) {
+
+					var brand = controller.name.endsWith('D') ? 'samsung' : 'lenovo';
+					var hand = controller.getHand() == 'right' ? 'right' : 'left';
+
+					var mat = new THREE.MeshPhongMaterial({
+						specular: 0x898989,
+						shininess: 5,
+						map: textureLoader.load('models/windows-mr/'+brand+'/'+brand+'.png')
+					});
+
+					gltfLoader.load('models/windows-mr/'+brand+'/'+hand+'.glb', function(gltf){
+						var obj = gltf.scene.children[0];
+						controller.add( obj );
+
+						obj.traverse(function(node){
+							if ( node.isMesh) {
+								node.material = mat;
+							}
+						});
+
+						var pointPose = obj.getObjectByName('POINTING_POSE');
+						pointPose.add( controller.userData.laser );
+						controller.userData.pointPose = pointPose;
+					});
+
+				},
+				'daydream': function( controller ) {
+
+					var daydreamPath = 'models/daydream-controller/';
+					var daydreamMat = new THREE.MeshBasicMaterial({
+						map: textureLoader.load( daydreamPath + 'daydream.png' ),
+						transparent: true
+					});
+
+					fbxLoader.load( daydreamPath + 'daydream.fbx', function ( fbx ) {
+						var daydream = fbx.children[0];
+						daydream.material = daydreamMat;
+						controller.add( daydream );
+
+						var pointPose = new THREE.Group();
+						pointPose.position.z = -0.048;
+						daydream.add( pointPose );
+						pointPose.add( laser.clone() );
+					});
+
+				},
+				'gearvr-controller': function( controller ) {
+
+					var gearController;
+					fbxLoader.load( 'models/gearvr-controller/gearvr-controller.fbx', function ( fbx ) {
+						gearController = fbx.children[0];
+						gearController.getObjectByName('body').material.side = THREE.DoubleSide;
+						controller.add( gearController );
+					});
+
+				},
+				'gearvr-touchpad': function( controller ) {
+
+					var gearTouchpadGeo = new THREE.PlaneBufferGeometry( .065, .05 );
+					var gearTouchpadMat =  new THREE.MeshBasicMaterial({
+						color: 0x333333,
+						side: THREE.DoubleSide
+					});
+					var gearTouchpadMesh = new THREE.Mesh( gearTouchpadGeo, gearTouchpadMat );
+
+					gearTouchpadMesh.rotation.x = Math.PI / 2;
+					gearTouchpadMesh.position.set( -0.3, 0, -0.2 );
+
+					scene.add( gearTouchpadMesh );
+
+					var touchpadDown = function() {
+						gearTouchpadMesh.scale.setScalar( 1.1 );
+					};
+
+					var touchpadUp = function() {
+						gearTouchpadMesh.scale.setScalar( 1 );
+					};
+
+					controller.addEventListener('touchpad touch began', touchpadDown);
+					controller.addEventListener('touchpad touch ended', touchpadUp);
+
+				},
+				'default': function( controller ) {
+
+					var meshColorOff = 0xFF4040;
+					var meshColorOn  = 0xFFFF00;
+
+					var controllerMaterial = new THREE.MeshStandardMaterial({
+						color: meshColorOff, 
+						shading: THREE.FlatShading
+					});
+
+					var controllerMesh = new THREE.Mesh(
+						new THREE.CylinderGeometry( 0.005, 0.05, 0.1, 6 ),
+						controllerMaterial
+					);
+
+					var handleMesh = new THREE.Mesh(
+						new THREE.BoxGeometry( 0.03, 0.1, 0.03 ),
+						controllerMaterial
+					);
 
-	new THREE.TorusKnotGeometry( 0.4, 0.15, 150, 20 ),
-	new THREE.MeshStandardMaterial({ roughness: 0.01, metalness: 0.2 })
-)
-torus.position.set( -0.25, 1.4, -1.5 )
-scene.add( torus )
+					controllerMesh.rotation.x = -Math.PI / 2;
+					handleMesh.position.y = -0.05;
+					controllerMesh.add( handleMesh );
+					controller.add( controllerMesh );
+
+					var primaryDown = function() {
+						controllerMesh.material.color.setHex( meshColorOn );
+					};
+
+					var primaryUp = function() {
+						controllerMesh.material.color.setHex( meshColorOff );
+					};
+
+					controller.addEventListener('primary press began', primaryDown);
+					controller.addEventListener('primary press ended', primaryUp);
 
-//  DAT GUI for WebVR is just one of the coolest things ever.
-//  Huge, huge thanks to Jeff Nusz / http://custom-logic.com
-//  and Michael Chang / http://minmax.design for making this!!
-//  https://github.com/dataarts/dat.guiVR
+				}
+			};
 
-dat.GUIVR.enableMouse( camera )
-var gui = dat.GUIVR.create( 'Settings' )
-gui.position.set( 0.2, 0.8, -1 )
-gui.rotation.set( Math.PI / -6, 0, 0 )
-scene.add( gui )
-gui.add( torus.position, 'x', -1, 1 ).step( 0.001 ).name( 'Position X' )
-gui.add( torus.position, 'y', -1, 2 ).step( 0.001 ).name( 'Position Y' )
-gui.add( torus.rotation, 'y', -Math.PI, Math.PI ).step( 0.001 ).name( 'Rotation' ).listen()
 
+			window.addEventListener( 'vr controller connected', function( event ){
+
+				var controller = event.detail;
+				cameraRig.add( controller );
+
+				controller.standingMatrix = controls.vr.getStandingMatrix();
+				controller.head = camera;
 
+				// pose isn't always there on connect?
+				// if ( controller.gamepad.pose && controller.gamepad.pose.hasOrientation ) {
+					var laserRadius = 0.001;
+					var laserLength = 1;
+					var laserGeo = new THREE.CylinderBufferGeometry( laserRadius, laserRadius, laserLength, 8, 1, true );
+					// set origin to bottom side for scale.y
+					laserGeo.applyMatrix( new THREE.Matrix4().makeTranslation( 0, laserLength/2, 0 ) );
+					var laserMat = new THREE.MeshBasicMaterial({ color: 0x653A8E });
+
+					var laser = new THREE.Mesh( laserGeo, laserMat );
+					laser.name = 'laser';
+					laser.rotation.x = - Math.PI / 2;
+					laser.userData.defaultLength = 6;
+					laser.scale.y = laser.userData.defaultLength;
+
+					laser.userData.length = new THREE.Vector3();
+
+					controller.add( laser );
+					controller.userData.laser = laser;
+				// }
+
+				//
+
+				var style = controller.style;
+
+				// if you need to do something different for the left and right vive controllers
+				// if ( style == 'vive' && controller.gamepad.hand ) {
+				// 	style += '-' + controller.gamepad.hand;
+				// }
+
+				controllerSetup[controllerSetup[style] ? style : 'default']( controller );
 
+
+				//  Allow this controller to interact with DAT GUI.
+				var guiInputHelper = dat.GUIVR.addInputObject( controller );
+				scene.add( guiInputHelper );
+
+				var dom = document.querySelector('#gamepad-' + controller.gamepad.index);
+				if (!dom) {
+					dom = document.createElement('li');
+					dom.id = 'gamepad-' + controller.gamepad.index;
+					document.querySelector('#controllers').appendChild( dom );
+				}
+				dom.innerText = style;
+				dom.classList.add('connected');
 
-//  Check this out: When THREE.VRController finds a new controller
-//  it will emit a custom “vr controller connected” event on the
-//  global window object. It uses this to pass you the controller
-//  instance and from there you do what you want with it.
 
-window.addEventListener( 'vr controller connected', function( event ){
+				controller.addEventListener( 'primary press began', function( event ) {
+					guiInputHelper.pressed( true );
+					dom.classList.add('active');
+				});
 
+				controller.addEventListener( 'primary press ended', function( event ) {
+					guiInputHelper.pressed( false );
+					dom.classList.remove('active');
+				});
 
-	//  Here it is, your VR controller instance.
-	//  It’s really a THREE.Object3D so you can just add it to your scene:
+				controller.addEventListener( 'disconnected', function( event ) {
+					controller.parent.remove( controller );
 
-	var controller = event.detail
-	camParent.add( controller )
+					dom.innerText = 'not connected';
+					dom.classList.remove('connected');
+				});
 
+			});
 
-	//  HEY HEY HEY! This is important. You need to make sure you do this.
-	//  For standing experiences (not seated) we need to set the standingMatrix
-	//  otherwise you’ll wonder why your controller appears on the floor
-	//  instead of in your hands! And for seated experiences this will have no
-	//  effect, so safe to do either way:
+			// ------------------------------------------------------------
+			// ------------------------------------------------------------
 
-	controller.standingMatrix = window.vrcontrols.getStandingMatrix()
+			// lights
 
+			var aLight = new THREE.AmbientLight( 0x404040 );
+			scene.add( aLight );
 
-	//  And for 3DOF (seated) controllers you need to set the controller.head
-	//  to reference your camera. That way we can make an educated guess where
-	//  your hand ought to appear based on the camera’s rotation.
+			var dLight1 = new THREE.DirectionalLight( 0xffffff, 0.5 );
+			dLight1.position.set( 1, 1, 1 ).multiplyScalar( 80 );
+			scene.add( dLight1 );
 
-	controller.head = window.camera
+			var dLight2 = new THREE.DirectionalLight( 0xffffff, 0.4 );
+			dLight2.position.set( -1, 0.7, 1 ).multiplyScalar( 80 );
+			scene.add( dLight2 );
 
+			var dLight3 = new THREE.DirectionalLight( 0xffffff, 0.3 );
+			dLight3.position.set( 0, 1, -2 ).multiplyScalar( 80 );
+			scene.add( dLight3 );
 
-	//  Right now your controller has no visual.
-	//  It’s just an empty THREE.Object3D.
-	//  Let’s fix that!
+			var dLight4 = new THREE.DirectionalLight( 0xffffff, 0.3 );
+			dLight4.position.set( 0, -1, -2 ).multiplyScalar( 80 );
+			scene.add( dLight4 );
 
-	var
-	meshColorOff = 0xDB3236,//  Red.
-	meshColorOn  = 0xF4C20D,//  Yellow.
-	controllerMaterial = new THREE.MeshStandardMaterial({
+			// var dlh1 = new THREE.DirectionalLightHelper( dLight1, 10 );
+			// var dlh2 = new THREE.DirectionalLightHelper( dLight2, 10 );
+			// var dlh3 = new THREE.DirectionalLightHelper( dLight3, 10 );
+			// var dlh4 = new THREE.DirectionalLightHelper( dLight4, 10 );
+			// scene.add( dlh1, dlh2, dlh3, dlh4 );
 
-		color: meshColorOff,
-		flatShading: true
-	}),
-	controllerMesh = new THREE.Mesh(
+			// better lighting reference:
+			// https://xboxdesignlab.xbox.com/en-US/customize
 
-		new THREE.CylinderGeometry( 0.005, 0.05, 0.1, 6 ),
-		controllerMaterial
-	),
-	handleMesh = new THREE.Mesh(
+			var gh = new THREE.GridHelper( 4, 8, 0x000000, 0x808080 );
+			gh.material.transparent = true
+			gh.material.opacity = 0.3;
+			scene.add( gh );
 
-		new THREE.BoxGeometry( 0.03, 0.1, 0.03 ),
-		controllerMaterial
-	)
+			// --------------------------------------------------------------
 
-	controllerMesh.rotation.x = -Math.PI / 2
-	handleMesh.position.y = -0.05
-	controllerMesh.add( handleMesh )
-	controller.userData.mesh = controllerMesh//  So we can change the color later.
-	controller.add( controllerMesh )
+			THREE.DefaultLoadingManager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+				// console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+			};
 
+			THREE.DefaultLoadingManager.onLoad = function ( ) {
+				container.appendChild( renderer.domElement );
+				loop();
+			};
 
-	//  Allow this controller to interact with DAT GUI.
+			var imageLoader = new THREE.ImageLoader();
+			var xboxPath = 'models/xbox-controller/';
+			var bump = imageLoader.load(xboxPath + 'xbox-controller-bump.jpg');
+			var normal = imageLoader.load(xboxPath + 'xbox-controller-normal.jpg');
+			var color = imageLoader.load(xboxPath + 'xbox-controller-color.jpg');
 
-	var guiInputHelper = dat.GUIVR.addInputObject( controller )
-	scene.add( guiInputHelper )
+			// --------------------------------------------------------------
 
-	var dom = document.querySelector('#gamepad-' + controller.gamepad.index);
-	if (!dom) {
-		dom = document.createElement('li');
-		dom.id = 'gamepad-' + controller.gamepad.index;
-		document.querySelector('#controllers').appendChild( dom );
-	}
-	dom.innerText = controller.style;
-	dom.classList.add('connected');
+			window.addEventListener( 'resize', resize, false );
 
-	//  Button events. How easy is this?!
-	//  We’ll just use the “primary” button -- whatever that might be ;)
-	//  Check out the THREE.VRController.supported{} object to see
-	//  all the named buttons we’ve already mapped for you!
+			function resize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
 
-	controller.addEventListener( 'primary press began', function( event ){
+			document.addEventListener( 'mousemove', mousemove, false );
 
-		event.target.userData.mesh.material.color.setHex( meshColorOn )
-		guiInputHelper.pressed( true )
-		dom.classList.add('active');
-	})
-	controller.addEventListener( 'primary press ended', function( event ){
+			function mousemove( event ) {
+				event.preventDefault();
+				mouse.active = true;
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			}
 
-		event.target.userData.mesh.material.color.setHex( meshColorOff )
-		guiInputHelper.pressed( false )
-		dom.classList.remove('active');
-	})
+			//
 
-	//  Daddy, what happens when we die?
+			// based on examples/webvr_vive_dragging.html
 
-	controller.addEventListener( 'disconnected', function( event ){
+			function getIntersections( controller ) {
 
-		controller.parent.remove( controller )
+				if ( controller instanceof THREE.VRController ) {
 
-		dom.innerText = 'not connected';
-		dom.classList.remove('connected');
-	})
+					if ( controller.userData.pointPose ) controller = controller.userData.pointPose;
 
-})
+					tempMatrix.identity().extractRotation( controller.matrixWorld );
+					raycaster.ray.origin.setFromMatrixPosition( controller.matrixWorld );
+					raycaster.ray.direction.set( 0, 0, -1 ).applyMatrix4( tempMatrix );
 
+				} else if ( controller instanceof THREE.Camera ) {
 
+					raycaster.setFromCamera( center, camera );
 
+				} else if ( controller instanceof THREE.Vector2 ) {
 
-function update(){
+					raycaster.setFromCamera( mouse, camera );
 
+				}
 
-	//  Here’s VRController’s UPDATE goods right here:
-	//  This one command in your animation loop is going to handle
-	//  all the VR controller business you need to get done!
+				return raycaster.intersectObjects( hitObjects );
 
-	THREE.VRController.update()
+			}
 
+			function intersectObjects( controller ) {
 
-	//  And here’s your standard update and render stuff.
-	//  Nothing new to see here.
+				// Do not highlight when already selected
 
-	vrcontrols.update()
-	effect.requestAnimationFrame( update )
-	torus.rotation.y += 0.002
-	if( torus.rotation.y > Math.PI ) torus.rotation.y -= ( Math.PI * 2 )//  Keep DAT GUI display tidy!
-	effect.render( scene, camera )
-}
-update()
+				// if ( controller.userData.selected !== undefined ) return;
 
+				var laser = controller.userData ? controller.userData.laser : null;
+				var intersections = getIntersections( controller );
 
+				if ( intersections.length > 0 ) {
 
+					var intersection = intersections[ 0 ];
+
+					var object = intersection.object;
+					object.material.emissive.r = 1;
+					intersected.push( object );
+
+					if ( laser ) laser.scale.y = intersection.distance;
+
+				} else {
+
+					if ( laser ) laser.scale.y = laser.userData.defaultLength;
+
+				}
+
+			}
+
+			function cleanIntersected() {
+
+				while ( intersected.length ) {
+
+					var object = intersected.pop();
+					object.material.emissive.r = 0;
+
+				}
+
+			}
+
+			//
+
+			function loop() {
+
+				effect.requestAnimationFrame( loop );
+
+				cleanIntersected();
+
+				if ( effect.isPresenting ) {
+					controls.vr.update();
+				} else {
+					controls.orbit.update();
+					if ( mouse.active ) intersectObjects( mouse );
+				}
+
+				THREE.VRController.update();
+
+				// if ( mouse.active ) intersectObjects( mouse );
+				// if ( has.mobile ) intersectObjects( camera );
+
+				for( c in THREE.VRController.controllers ) {
+					var controller = THREE.VRController.controllers[c];
+					if ( controller && controller.dof >= 3 ) {
+						intersectObjects( controller );
+					}
+				}
+
+				effect.render( scene, camera );
+
+			}
 
 		</script>
+
 	</body>
 </html>
