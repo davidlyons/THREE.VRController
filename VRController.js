@@ -511,7 +511,7 @@ THREE.VRController.prototype.update = function(){
 	//  If we’ve gotten to here then gamepad.pose has a definition
 	//  so now we can set a convenience variable to know if we are 3DOF or 6DOF.
 
-	// this.dof = ( +gamepad.pose.hasOrientation + +gamepad.pose.hasPosition ) * 3;
+	this.dof = gamepad.pose ? 3 * ( +gamepad.pose.hasOrientation + +gamepad.pose.hasPosition ) : 0;
 
 
 	//  ORIENTATION.
@@ -1213,14 +1213,14 @@ THREE.VRController.supported = {
 
 		style: 'oculus-remote',
 		buttons: [
-			'a',
-			'b',
+			'A',
+			'B',
 			'd-up',
 			'd-down',
 			'd-left',
 			'd-right'
 		],
-		primary: 'a'
+		primary: 'A'
 
 	},
 
@@ -1242,10 +1242,10 @@ THREE.VRController.supported = {
 			{ name: 'thumbstick-right', indexes: [ 2, 3 ]}
 		],
 		buttons: [
-			'a',
-			'b',
-			'x',
-			'y',
+			'A',
+			'B',
+			'X',
+			'Y',
 			'bumper-left',
 			'bumper-right',
 			'trigger-left',
@@ -1259,7 +1259,7 @@ THREE.VRController.supported = {
 			'd-left',
 			'd-right'
 		],
-		primary: 'a'
+		primary: 'A'
 	},
 
 };
