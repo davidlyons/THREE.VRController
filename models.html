@@ -200,10 +200,11 @@
 
 			// oculus go controller
 
-			gltfLoader.load('models/oculus-go/pacific_lp.gltf', function( gltf ){
-				var goController = gltf.scene.children[0];
+			fbxLoader.load('models/oculus-go/pacific_lp.fbx', function( fbx ){
+				var goController = fbx.children[0];
 				goController.position.x = -.32;
 				scene.add( goController );
+
 				goController.add( laser.clone() );
 			});
 
