@@ -168,7 +168,7 @@
 			fbxLoader.load( 'models/vive-controller/vive-controller-1-5.fbx', function ( fbx ) {
 				var vive = fbx.children[0];
 				vive.children[0].material.specular.setHex( 0x111111 );
-				vive.position.set( -0.25, 0, 0 );
+				vive.position.x = -0.21;
 				scene.add( vive );
 
 				vive.add( laser.clone() );
@@ -194,6 +194,18 @@
 				pointPose.position.z = -0.048;
 				daydream.add( pointPose );
 				pointPose.add( laser.clone() );
+			});
+
+			// ------------------------------------------------------------
+
+			// oculus go controller
+
+			gltfLoader.load('models/oculus-go/pacific_lp.gltf', function( gltf ){
+				var goController = gltf.scene.children[0];
+				goController.position.x = -.32;
+				scene.add( goController );
+				goController.add( laser.clone() );
+				console.log( goController );
 			});
 
 			// ------------------------------------------------------------

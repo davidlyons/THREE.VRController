@@ -1188,6 +1188,18 @@ THREE.VRController.supported = {
 
 	},
 
+	'Oculus Go Controller': {
+
+		style: 'oculus-go',
+		axes: [{ name: 'thumbpad', indexes: [ 0, 1 ]}],
+		buttons: [
+			'touchpad',
+			'trigger'
+		],
+		primary: 'touchpad'
+
+	},
+
 	'Gear VR Controller': {
 
 		style: 'gearvr-controller',
