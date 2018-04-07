@@ -339,6 +339,10 @@ THREE.VRController = function( gamepad ) {
 		if ( hand !== controller.gamepad.hand ) {
 			if( verbosity >= 0.4 ) console.log( controllerInfo +'hand changed from "'+ hand +'" to "'+ controller.gamepad.hand +'"' );
 			hand = controller.gamepad.hand;
+			if ( this.armModel ) {
+				var isLeftHanded = hand == 'left' ? true : false;
+				this.armModel.setLeftHanded( isLeftHanded );
+			}
 			controller.dispatchEvent({ type: 'hand changed', hand: hand });
 		}
 
@@ -549,6 +553,8 @@ THREE.VRController.prototype.update = function(){
 
 			if ( THREE.VRController.verbosity >= 0.5 ) console.log( '> #'+ gamepad.index +' '+ gamepad.id +' (Hand: '+ this.getHand() +') adding OrientationArmModel' );
 			this.armModel = new OrientationArmModel();
+			var isLeftHanded = gamepad.hand == 'left' ? true : false;
+			this.armModel.setLeftHanded( isLeftHanded );
 
 		}
 
@@ -1365,15 +1371,16 @@ function OrientationArmModel() {
 
 //  STATICS.
 
-Object.assign( OrientationArmModel, {
-	HEAD_ELBOW_OFFSET       : new THREE.Vector3(  0.155, -0.465, -0.15 ),
-	ELBOW_WRIST_OFFSET      : new THREE.Vector3(  0, 0, -0.25 ),
-	WRIST_CONTROLLER_OFFSET : new THREE.Vector3(  0, 0, 0.05 ),
-	ARM_EXTENSION_OFFSET    : new THREE.Vector3( -0.08, 0.14, 0.08 ),
-	ELBOW_BEND_RATIO        : 0.4,//  40% elbow, 60% wrist.
-	EXTENSION_RATIO_WEIGHT  : 0.4,
-	MIN_ANGULAR_SPEED       : 0.61//  35˚ per second, converted to radians.
-});
+
+OrientationArmModel.HEAD_ELBOW_OFFSET_RIGHTHANDED = new THREE.Vector3( 0.155, -0.465, -0.15 );
+OrientationArmModel.HEAD_ELBOW_OFFSET_LEFTHANDED = new THREE.Vector3( -0.155, -0.465, -0.15 );
+OrientationArmModel.headElbowOffset = OrientationArmModel.HEAD_ELBOW_OFFSET_RIGHTHANDED;
+OrientationArmModel.ELBOW_WRIST_OFFSET = new THREE.Vector3(  0, 0, -0.25 );
+OrientationArmModel.WRIST_CONTROLLER_OFFSET = new THREE.Vector3(  0, 0, 0.05 );
+OrientationArmModel.ARM_EXTENSION_OFFSET = new THREE.Vector3( -0.08, 0.14, 0.08 );
+OrientationArmModel.ELBOW_BEND_RATIO = 0.4;//  40% elbow, 60% wrist.
+OrientationArmModel.EXTENSION_RATIO_WEIGHT = 0.4;
+OrientationArmModel.MIN_ANGULAR_SPEED = 0.61;//  35˚ per second, converted to radians.
 
 
 //  SETTERS.
@@ -1395,9 +1402,14 @@ OrientationArmModel.prototype.setHeadPosition = function( position ) {
 	this.headPos.copy( position );
 
 };
-OrientationArmModel.prototype.setLeftHanded = function( isLeftHanded ) {//  TODO(smus): Implement me!
+OrientationArmModel.prototype.setLeftHanded = function( isLeftHanded ) {
 
 	this.isLeftHanded = isLeftHanded;
+	if ( isLeftHanded ) {
+		OrientationArmModel.headElbowOffset = OrientationArmModel.HEAD_ELBOW_OFFSET_LEFTHANDED;
+	} else {
+		OrientationArmModel.headElbowOffset = OrientationArmModel.HEAD_ELBOW_OFFSET_RIGHTHANDED;
+	}
 
 };
 
@@ -1440,7 +1452,7 @@ OrientationArmModel.prototype.update = function() {
 
 	// Calculate elbow position.
 	var elbowPos = this.elbowPos;
-	elbowPos.copy( this.headPos ).add( OrientationArmModel.HEAD_ELBOW_OFFSET );
+	elbowPos.copy( this.headPos ).add( OrientationArmModel.headElbowOffset );
 	var elbowOffset = new THREE.Vector3().copy( OrientationArmModel.ARM_EXTENSION_OFFSET );
 	elbowOffset.multiplyScalar( extensionRatio );
 	elbowPos.add( elbowOffset );
