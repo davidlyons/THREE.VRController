@@ -30,14 +30,14 @@ FBXHeaderExtension:  {
 			Comment: ""
 		}
 		Properties70:  {
-			P: "DocumentUrl", "KString", "Url", "", "D:\Dropbox\Sites\WebGL Projects\gamepad\models\oculus-remote\oculus-remote.fbx"
-			P: "SrcDocumentUrl", "KString", "Url", "", "D:\Dropbox\Sites\WebGL Projects\gamepad\models\oculus-remote\oculus-remote.fbx"
+			P: "DocumentUrl", "KString", "Url", "", "oculus-remote.fbx"
+			P: "SrcDocumentUrl", "KString", "Url", "", "oculus-remote.fbx"
 			P: "Original", "Compound", "", ""
 			P: "Original|ApplicationVendor", "KString", "", "", "Autodesk"
 			P: "Original|ApplicationName", "KString", "", "", "Maya"
 			P: "Original|ApplicationVersion", "KString", "", "", "2014"
 			P: "Original|DateTime_GMT", "DateTime", "", "", "05/02/2018 22:36:31.990"
-			P: "Original|FileName", "KString", "", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-remote/oculus-remote.fbx"
+			P: "Original|FileName", "KString", "", "", "oculus-remote.fbx"
 			P: "LastSaved", "Compound", "", ""
 			P: "LastSaved|ApplicationVendor", "KString", "", "", "Autodesk"
 			P: "LastSaved|ApplicationName", "KString", "", "", "Maya"

@@ -30,10 +30,10 @@
 
 		<div id="container"></div>
 
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/build/three.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/OrbitControls.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/FBXLoader.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/GLTFLoader.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r91/build/three.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r91/examples/js/controls/OrbitControls.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r91/examples/js/loaders/FBXLoader.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r91/examples/js/loaders/GLTFLoader.js"></script>
 
 		<script>
 
@@ -179,19 +179,19 @@
 			// daydream
 
 			var daydreamPath = 'models/daydream-controller/';
-			var daydreamMat = new THREE.MeshBasicMaterial({
-				map: textureLoader.load( daydreamPath + 'daydream.png' ),
-				transparent: true
-			});
+			// var ddTransparent = textureLoader.load( daydreamPath + 'daydream-transparent.png' );
 
 			fbxLoader.load( daydreamPath + 'daydream.fbx', function ( fbx ) {
-				var daydream = fbx.children[0];
-				daydream.material = daydreamMat;
+				var daydream = window.daydream = fbx.children[0];
+
+				// daydream.children[0].material.map = ddTransparent;
+				// daydream.children[0].material.transparent = true;
+
 				daydream.position.set( -0.5, 0, 0 );
 				scene.add( daydream );
 
 				var pointPose = new THREE.Group();
-				pointPose.position.z = -0.048;
+				pointPose.position.z = -0.053;
 				daydream.add( pointPose );
 				pointPose.add( laser.clone() );
 			});

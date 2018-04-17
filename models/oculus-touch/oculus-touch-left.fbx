@@ -30,14 +30,14 @@ FBXHeaderExtension:  {
 			Comment: ""
 		}
 		Properties70:  {
-			P: "DocumentUrl", "KString", "Url", "", "D:\Dropbox\Sites\WebGL Projects\gamepad\models\oculus-touch\oculus-touch-left.fbx"
-			P: "SrcDocumentUrl", "KString", "Url", "", "D:\Dropbox\Sites\WebGL Projects\gamepad\models\oculus-touch\oculus-touch-left.fbx"
+			P: "DocumentUrl", "KString", "Url", "", "oculus-touch-left.fbx"
+			P: "SrcDocumentUrl", "KString", "Url", "", "oculus-touch-left.fbx"
 			P: "Original", "Compound", "", ""
 			P: "Original|ApplicationVendor", "KString", "", "", "Autodesk"
 			P: "Original|ApplicationName", "KString", "", "", "Maya"
 			P: "Original|ApplicationVersion", "KString", "", "", "2014"
 			P: "Original|DateTime_GMT", "DateTime", "", "", "05/02/2018 23:40:15.697"
-			P: "Original|FileName", "KString", "", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-left.fbx"
+			P: "Original|FileName", "KString", "", "", "oculus-touch-left.fbx"
 			P: "LastSaved", "Compound", "", ""
 			P: "LastSaved|ApplicationVendor", "KString", "", "", "Autodesk"
 			P: "LastSaved|ApplicationName", "KString", "", "", "Maya"
@@ -2008,19 +2008,19 @@ Objects:  {
 	Video: 1233513024, "Video::file1", "Clip" {
 		Type: "Clip"
 		Properties70:  {
-			P: "Path", "KString", "XRefUrl", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-color.png"
+			P: "Path", "KString", "XRefUrl", "", "oculus-touch-color.png"
 		}
 		UseMipMap: 0
-		Filename: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-color.png"
+		Filename: "oculus-touch-color.png"
 		RelativeFilename: "oculus-touch-color.png"
 	}
 	Video: 1233514304, "Video::file2", "Clip" {
 		Type: "Clip"
 		Properties70:  {
-			P: "Path", "KString", "XRefUrl", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-spec.png"
+			P: "Path", "KString", "XRefUrl", "", "oculus-touch-spec.png"
 		}
 		UseMipMap: 0
-		Filename: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-spec.png"
+		Filename: "oculus-touch-spec.png"
 		RelativeFilename: "oculus-touch-spec.png"
 	}
 	Texture: 1194280336, "Texture::file1", "" {
@@ -2033,7 +2033,7 @@ Objects:  {
 			P: "UseMaterial", "bool", "", "",1
 		}
 		Media: "Video::file1"
-		FileName: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-color.png"
+		FileName: "oculus-touch-color.png"
 		RelativeFilename: "oculus-touch-color.png"
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
@@ -2050,7 +2050,7 @@ Objects:  {
 			P: "UseMaterial", "bool", "", "",1
 		}
 		Media: "Video::file2"
-		FileName: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/oculus-touch/oculus-touch-spec.png"
+		FileName: "oculus-touch-spec.png"
 		RelativeFilename: "oculus-touch-spec.png"
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1

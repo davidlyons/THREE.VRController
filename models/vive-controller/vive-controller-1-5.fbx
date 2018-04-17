@@ -30,14 +30,14 @@ FBXHeaderExtension:  {
 			Comment: ""
 		}
 		Properties70:  {
-			P: "DocumentUrl", "KString", "Url", "", "D:\Dropbox\Sites\WebGL Projects\gamepad\models\vive-controller\vive-controller-1-5.fbx"
-			P: "SrcDocumentUrl", "KString", "Url", "", "D:\Dropbox\Sites\WebGL Projects\gamepad\models\vive-controller\vive-controller-1-5.fbx"
+			P: "DocumentUrl", "KString", "Url", "", "vive-controller-1-5.fbx"
+			P: "SrcDocumentUrl", "KString", "Url", "", "vive-controller-1-5.fbx"
 			P: "Original", "Compound", "", ""
 			P: "Original|ApplicationVendor", "KString", "", "", "Autodesk"
 			P: "Original|ApplicationName", "KString", "", "", "Maya"
 			P: "Original|ApplicationVersion", "KString", "", "", "2014"
 			P: "Original|DateTime_GMT", "DateTime", "", "", "06/02/2018 00:19:17.752"
-			P: "Original|FileName", "KString", "", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/vive-controller-1-5.fbx"
+			P: "Original|FileName", "KString", "", "", "vive-controller-1-5.fbx"
 			P: "LastSaved", "Compound", "", ""
 			P: "LastSaved|ApplicationVendor", "KString", "", "", "Autodesk"
 			P: "LastSaved|ApplicationName", "KString", "", "", "Maya"
@@ -2321,19 +2321,19 @@ Objects:  {
 	Video: 1233520064, "Video::file1", "Clip" {
 		Type: "Clip"
 		Properties70:  {
-			P: "Path", "KString", "XRefUrl", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/onepointfive_texture.png"
+			P: "Path", "KString", "XRefUrl", "", "onepointfive_texture.png"
 		}
 		UseMipMap: 0
-		Filename: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/onepointfive_texture.png"
+		Filename: "onepointfive_texture.png"
 		RelativeFilename: "onepointfive_texture.png"
 	}
 	Video: 1233507904, "Video::file2", "Clip" {
 		Type: "Clip"
 		Properties70:  {
-			P: "Path", "KString", "XRefUrl", "", "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/onepointfive_spec.png"
+			P: "Path", "KString", "XRefUrl", "", "onepointfive_spec.png"
 		}
 		UseMipMap: 0
-		Filename: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/onepointfive_spec.png"
+		Filename: "onepointfive_spec.png"
 		RelativeFilename: "onepointfive_spec.png"
 	}
 	Texture: 1194287856, "Texture::file1", "" {
@@ -2346,7 +2346,7 @@ Objects:  {
 			P: "UseMaterial", "bool", "", "",1
 		}
 		Media: "Video::file1"
-		FileName: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/onepointfive_texture.png"
+		FileName: "onepointfive_texture.png"
 		RelativeFilename: "onepointfive_texture.png"
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
@@ -2363,7 +2363,7 @@ Objects:  {
 			P: "UseMaterial", "bool", "", "",1
 		}
 		Media: "Video::file2"
-		FileName: "D:/Dropbox/Sites/WebGL Projects/gamepad/models/vive-controller/onepointfive_spec.png"
+		FileName: "onepointfive_spec.png"
 		RelativeFilename: "onepointfive_spec.png"
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
