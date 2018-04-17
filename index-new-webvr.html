@@ -490,7 +490,7 @@
 						var pointPose = new THREE.Group();
 						pointPose.position.z = -0.053;
 						daydream.add( pointPose );
-						pointPose.add( laser.clone() );
+						pointPose.add( controller.userData.laser );
 					});
 
 				},
