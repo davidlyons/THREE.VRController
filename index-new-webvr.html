@@ -482,19 +482,13 @@
 				'daydream': function( controller ) {
 
 					var daydreamPath = 'models/daydream-controller/';
-					var daydreamMat = new THREE.MeshBasicMaterial({
-						map: textureLoader.load( daydreamPath + 'daydream.png' ),
-						transparent: true
-					});
 
-					var daydream;
 					fbxLoader.load( daydreamPath + 'daydream.fbx', function ( fbx ) {
-						daydream = fbx.children[0];
-						daydream.material = daydreamMat;
+						var daydream = fbx.children[0];
 						controller.add( daydream );
 
 						var pointPose = new THREE.Group();
-						pointPose.position.z = -0.048;
+						pointPose.position.z = -0.053;
 						daydream.add( pointPose );
 						pointPose.add( laser.clone() );
 					});
