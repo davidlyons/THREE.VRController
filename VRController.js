@@ -377,7 +377,7 @@ THREE.VRController = function( gamepad ) {
 					// a "Goofy" Y-axis. We’re going to INVERT it so you
 					// don’t have to worry about it!
 					var axesValues = [ axisX, axisY ];
-					if ( this.style === 'vive' && axes[i].name === 'thumbpad' ) {
+					if ( this.style === 'vive' && axes[i].name === 'touchpad' ) {
 						axesValues[ 1 ] *= -1;
 					}
 
@@ -926,9 +926,9 @@ THREE.VRController.supported = {
 		//                   ↓
 		//           Bottom: Y = +1
 		
-		axes: [{ name: 'thumbpad', indexes: [ 0, 1 ]}],
-		buttons: [ 'thumbpad' ],
-		primary: 'thumbpad'
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
+		buttons: [ 'touchpad' ],
+		primary: 'touchpad'
 	},
 
 	'OpenVR Gamepad': {
@@ -950,7 +950,7 @@ THREE.VRController.supported = {
 		//  make life easier on you WE WILL INVERT ITS AXIS in the code above.
 		//  This way YOU don't have to worry about it. 
 
-		axes: [{ name: 'thumbpad', indexes: [ 0, 1 ]}],
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
 		buttons: [
 
 
@@ -960,7 +960,7 @@ THREE.VRController.supported = {
 			//  isTouched: YES has real touch detection.
 			//  isPressed: As expected.
 
-			'thumbpad',
+			'touchpad',
 
 
 			//  TRIGGER
@@ -1125,7 +1125,7 @@ THREE.VRController.supported = {
 			//  Operates exactly the same as the thumbstick but without the
 			//  extra twitchiness.
 
-			{ name: 'thumbpad',   indexes: [ 2, 3 ]}
+			{ name: 'touchpad',   indexes: [ 2, 3 ]}
 		],
 		buttons: [
 
@@ -1188,7 +1188,7 @@ THREE.VRController.supported = {
 			//  isTouched: YES has real touch detection.
 			//  isPressed: As expected.
 
-			'thumbpad'
+			'touchpad'
 		],
 		primary: 'trigger'
 
@@ -1197,7 +1197,7 @@ THREE.VRController.supported = {
 	'Oculus Go Controller': {
 
 		style: 'oculus-go',
-		axes: [{ name: 'thumbpad', indexes: [ 0, 1 ]}],
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
 		buttons: [
 			'touchpad',
 			'trigger'
@@ -1209,7 +1209,7 @@ THREE.VRController.supported = {
 	'Gear VR Controller': {
 
 		style: 'gearvr-controller',
-		axes: [{ name: 'thumbpad', indexes: [ 0, 1 ]}],
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
 		buttons: [
 			'touchpad',
 			'trigger'
@@ -1221,7 +1221,7 @@ THREE.VRController.supported = {
 	'Gear VR Touchpad': {
 
 		style: 'gearvr-touchpad',
-		axes: [{ name: 'thumbpad', indexes: [ 0, 1 ]}],
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
 		buttons: [ 'touchpad' ],
 		primary: 'touchpad'
 
