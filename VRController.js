@@ -1202,7 +1202,7 @@ THREE.VRController.supported = {
 			'touchpad',
 			'trigger'
 		],
-		primary: 'touchpad'
+		primary: 'trigger'
 
 	},
 
@@ -1214,7 +1214,7 @@ THREE.VRController.supported = {
 			'touchpad',
 			'trigger'
 		],
-		primary: 'touchpad'
+		primary: 'trigger'
 
 	},
 
