@@ -1098,6 +1098,34 @@ THREE.VRController.supported = {
 		],
 		primary: 'trigger'
 	},
+	'Oculus Santa Cruz Controller Right': {
+
+		style: 'santa-cruz-right',
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
+		buttons: [
+
+			'touchpad',
+			'trigger',
+			'trigger2', // gamepad.buttons[1] and gamepad.buttons[2] are both the same trigger button
+			'grip'
+
+		],
+		primary: 'trigger'
+	},
+	'Oculus Santa Cruz Controller Left': {
+
+		style: 'santa-cruz-left',
+		axes: [{ name: 'touchpad', indexes: [ 0, 1 ]}],
+		buttons: [
+
+			'touchpad',
+			'trigger',
+			'trigger2',
+			'grip'
+
+		],
+		primary: 'trigger'
+	},
 
 	//  https://github.com/stewdio/THREE.VRController/issues/8
 
