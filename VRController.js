@@ -538,6 +538,21 @@ THREE.VRController.prototype.update = function(){
 		this.position.fromArray( pose.position );
 		this.matrix.compose( this.position, this.quaternion, this.scale );
 
+		//  Ok, we know where the this ought to be so let’s set that.
+		//  For 6DOF controllers it’s necessary to set controller.standingMatrix
+		//  to reference your VRControls.standingMatrix, otherwise your controllers
+		//  will be on the floor instead of up in your hands!
+		//  NOTE: “VRControls” and “VRController” are similarly named but two
+		//  totally different things! VRControls is what reads your headset’s
+		//  position and orientation, then moves your camera appropriately.
+		//  Whereas this VRController instance is for the VR controllers that
+		//  you hold in your hands.
+
+		if ( this.standingMatrix ) { // standingMatrix was removed in three.js r89
+			this.matrix.multiplyMatrices( this.standingMatrix, this.matrix );
+			this.matrixWorldNeedsUpdate = true;
+		}
+
 	} else {
 
 		//  POSITION -- NOPE ;(
@@ -574,22 +589,6 @@ THREE.VRController.prototype.update = function(){
 			this.scale
 		);
 
-	}
-
-
-	//  Ok, we know where the this ought to be so let’s set that.
-	//  For 6DOF controllers it’s necessary to set controller.standingMatrix
-	//  to reference your VRControls.standingMatrix, otherwise your controllers
-	//  will be on the floor instead of up in your hands!
-	//  NOTE: “VRControls” and “VRController” are similarly named but two
-	//  totally different things! VRControls is what reads your headset’s
-	//  position and orientation, then moves your camera appropriately.
-	//  Whereas this VRController instance is for the VR controllers that
-	//  you hold in your hands.
-
-	if ( this.standingMatrix ) { // standingMatrix was removed in three.js r89
-		this.matrix.multiplyMatrices( this.standingMatrix, this.matrix );
-		this.matrixWorldNeedsUpdate = true;
 	}
 
 };
