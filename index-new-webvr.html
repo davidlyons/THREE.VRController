@@ -70,12 +70,12 @@
 
 		<ol id="controllers"></ol>
 
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/build/three.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/controls/OrbitControls.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/FBXLoader.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/loaders/GLTFLoader.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r95/build/three.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r95/examples/js/controls/OrbitControls.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r95/examples/js/loaders/FBXLoader.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r95/examples/js/loaders/GLTFLoader.js"></script>
 		<script src="https://cdn.rawgit.com/dataarts/dat.guiVR/master/build/datguivr.js"></script>
-		<script src="https://cdn.rawgit.com/mrdoob/three.js/r89/examples/js/vr/WebVR.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r95/examples/js/vr/WebVR.js"></script>
 
 		<script src="VRController.js"></script>
 
@@ -579,7 +579,8 @@
 				var controller = event.detail;
 				cameraRig.add( controller );
 
-				controller.head = camera;
+				controller.standingMatrix = renderer.vr.getStandingMatrix();
+				// controller.head = camera;
 
 				// pose isn't always there on connect?
 				// if ( controller.gamepad.pose && controller.gamepad.pose.hasOrientation ) {
@@ -691,7 +692,7 @@
 
 			THREE.DefaultLoadingManager.onLoad = function ( ) {
 				container.appendChild( renderer.domElement );
-				renderer.animate( loop );
+				renderer.setAnimationLoop( loop );
 			};
 
 			var imageLoader = new THREE.ImageLoader();

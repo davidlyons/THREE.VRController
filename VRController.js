@@ -766,6 +766,16 @@ THREE.VRController.onGamepadConnect = function( gamepad ) {
 		hapticActuators[ 0 ].pulse( 0.1, 300 );
 	}
 
+	if ( controller.style == 'microsoft' ) {
+		var brand = controller.name.endsWith('D') ? 'samsung' : 'lenovo';
+		var hand = controller.getHand() == 'right' ? 'right' : 'left';
+
+		var pointPose = new THREE.Group();
+		pointPose.matrix.elements = THREE.VRController.pointPoses[ brand + hand ];
+		pointPose.matrixAutoUpdate = false;
+		controller.add( pointPose );
+		controller.userData.pointPose = pointPose;
+	}
 
 	//  Now we’ll broadcast a global connection event.
 	//  We’re not using THREE’s dispatchEvent because this event
@@ -1330,6 +1340,17 @@ THREE.VRController.addSupportedControllers();
 THREE.VRController.supportedKeys = Object.keys( THREE.VRController.supported );
 
 
+
+
+// extracted matrix elements from gltf / glb POINTING_POSE
+// to eliminate gltf model dependency for point pose
+
+THREE.VRController.pointPoses = {
+	'lenovoleft': [ 1.0000000585676598, 1.428240491846422e-7, -1.3515115515616571e-7, 0, -1.953478977821422e-7, 0.8191524853238598, -0.5735763540772528, 0, -1.4075356435938602e-9, 0.5735762449436418, 0.8191523296239955, 0, 0.00005496246566387766, -0.023584862568110543, -0.0795522921366941, 1 ],
+	'lenovoright': [ 1.0000000585676598, -1.428240491846422e-7, 1.3515115515616571e-7, 0, 1.953478977821422e-7, 0.8191524853238598, -0.5735763540772528, 0, 1.4075356435938602e-9, 0.5735762449436418, 0.8191523296239955, 0, -0.00005496246566387766, -0.023584862568110543, -0.0795522921366941, 1 ],
+	'samsungleft': [ 1.000000097751199, 1.4146054430619337e-7, -2.4532097026019883e-7, 0, -2.909342007861859e-7, 0.819152176207898, -0.5735757892827732, 0, 3.32911655132051e-7, 0.5735757209655963, 0.8191520310961115, 0, 0.0000976373998921292, -0.016698002035609866, -0.08565021298530356, 1 ],
+	'samsungright': [ 1.000000097751199, -1.4146054430619337e-7, 2.4532097026019883e-7, 0, 2.909342007861859e-7, 0.819152176207898, -0.5735757892827732, 0, -3.32911655132051e-7, 0.5735757209655963, 0.8191520310961115, 0, -0.0000976373998921292, -0.016698002035609866, -0.08565021298530356, 1 ]
+};
 
 
 
